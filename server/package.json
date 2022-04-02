@@ -1,0 +1,19 @@
+{
+	"name": "univent-server",
+	"version": "1.0.0",
+	"description": "Backend express server for accessing database",
+	"main": "index.js",
+	"scripts": {
+		"start": "node index.js",
+		"start:dev": "nodemon index.js"
+	},
+	"license": "ISC",
+	"dependencies": {
+		"dotenv": "^16.0.0",
+		"mysql": "^2.18.1",
+		"mysql2": "^2.3.3"
+	},
+	"devDependencies": {
+		"nodemon": "^2.0.15"
+	}
+}
