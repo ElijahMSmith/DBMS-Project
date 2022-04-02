@@ -1,75 +1,46 @@
-const mysql = require("mysql");
-const fs = require("fs");
-const dotenv = require("dotenv");
+const dotenv = require('dotenv');
+const sql = require('mssql');
+
+const express = require('express');
+const app = express();
 
 dotenv.config();
+const port = process.env.PORT || 1433;
 
 var config = {
-	host: "univents.database.windows.net",
-	user: process.env.ADMIN_LOGIN,
-	password: process.env.ADMIN_PASS,
-	database: "DBMS",
-	port: 1433,
-	ssl: {
-		ca: fs.readFileSync("./BaltimoreCyberTrustRoot.crt.pem"),
-	},
+    server: process.env.SERVER,
+    user: process.env.ADMIN_LOGIN,
+    password: process.env.ADMIN_PASS,
+    database: process.env.DB,
+    port,
+    options: {
+        encrypt: true,
+    },
 };
 
-console.log(config);
-
-const conn = new mysql.createConnection(config);
-
-conn.connect(function (err) {
-	if (err) {
-		console.log("!!! Cannot connect !!! Error:");
-		throw err;
-	} else {
-		console.log("Connection established.");
-		queryDatabase();
-	}
+/*
+app.get('/test', (req, res) => {
+    // These are our 'stored procedures'
+    const query = `SELECT * FROM DBMS`;
+    const request = new sql.Request();
+    request.query(query, (err, result) => {
+        if (err) res.status(500).send(err);
+        res.send(result);
+    });
 });
+*/
 
-function queryDatabase() {
-	conn.query(
-		"DROP TABLE IF EXISTS inventory;",
-		function (err, results, fields) {
-			if (err) throw err;
-			console.log("Dropped inventory table if existed.");
-		}
-	);
-	conn.query(
-		"CREATE TABLE inventory (id serial PRIMARY KEY, name VARCHAR(50), quantity INTEGER);",
-		function (err, results, fields) {
-			if (err) throw err;
-			console.log("Created inventory table.");
-		}
-	);
-	conn.query(
-		"INSERT INTO inventory (name, quantity) VALUES (?, ?);",
-		["banana", 150],
-		function (err, results, fields) {
-			if (err) throw err;
-			else console.log("Inserted " + results.affectedRows + " row(s).");
-		}
-	);
-	conn.query(
-		"INSERT INTO inventory (name, quantity) VALUES (?, ?);",
-		["orange", 154],
-		function (err, results, fields) {
-			if (err) throw err;
-			console.log("Inserted " + results.affectedRows + " row(s).");
-		}
-	);
-	conn.query(
-		"INSERT INTO inventory (name, quantity) VALUES (?, ?);",
-		["apple", 100],
-		function (err, results, fields) {
-			if (err) throw err;
-			console.log("Inserted " + results.affectedRows + " row(s).");
-		}
-	);
-	conn.end(function (err) {
-		if (err) throw err;
-		else console.log("Done.");
-	});
-}
+sql.connect(config)
+    .then(() => {
+        console.log('Connected to database successfully!');
+        // TODO: Drop tables if they exist
+        // TODO: Create all tables
+        // TODO: Insert dummy data for each table
+        app.listen(port, () => {
+            console.log(`App is listening at http://localhost:${port}`);
+        });
+    })
+    .catch((err) => {
+        console.log('Failed to open a SQL Database connection.', err.stack);
+        process.exit(1);
+    });
