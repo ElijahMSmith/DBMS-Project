@@ -1,22 +1,15 @@
-const dotenv = require('dotenv');
 const sql = require('mssql');
-
+const config = require('./config').dbconfig;
 const express = require('express');
+
 const app = express();
 
-dotenv.config();
-const port = process.env.PORT || 1433;
+// Import routes
+const authRoutes = require('./routes/authentication');
 
-var config = {
-    server: process.env.SERVER,
-    user: process.env.ADMIN_LOGIN,
-    password: process.env.ADMIN_PASS,
-    database: process.env.DB,
-    port,
-    options: {
-        encrypt: true,
-    },
-};
+// Middlewares
+app.use(express.json());
+app.use('/auth', authRoutes);
 
 /*
 app.get('/test', (req, res) => {
@@ -29,18 +22,39 @@ app.get('/test', (req, res) => {
     });
 });
 */
+/*
+        CREATE TABLE if not exists Admin (
+            uid CHAR(36),
+            username CHAR(20),
+            email CHAR(30),
+            password CHAR(20),
+            unid CHAR(36)
+        )
 
+
+        CREATE TABLE if not exists SuperAdmin (
+            uid CHAR(36),
+            username CHAR(20),
+            email CHAR(30),
+            password CHAR(20),
+            unid CHAR(36)
+        )
+    */
+
+// TODO: CREATE ALL TABLES IF THEY DON'T EXIST
 sql.connect(config)
-    .then(() => {
-        console.log('Connected to database successfully!');
-        // TODO: Drop tables if they exist
-        // TODO: Create all tables
-        // TODO: Insert dummy data for each table
-        app.listen(port, () => {
-            console.log(`App is listening at http://localhost:${port}`);
-        });
+    .then(async (pool) => {
+        await pool.query('DROP TABLE IF EXISTS Student')
+
+        const result = await pool.query(
+            `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Student' and xtype='U') 
+            CREATE TABLE Student (uid CHAR(36) PRIMARY KEY, username CHAR(20), email CHAR(30) UNIQUE, pass CHAR(20), unid CHAR(36))`
+        );
+
+        console.dir(result);
     })
-    .catch((err) => {
-        console.log('Failed to open a SQL Database connection.', err.stack);
-        process.exit(1);
-    });
+    .catch((err) => console.error(err));
+
+app.listen(config.port, () => {
+    console.log(`App is listening at http://localhost:${config.port}`);
+});
