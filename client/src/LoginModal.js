@@ -1,6 +1,11 @@
+import { useState } from 'react';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
+import Stack from '@mui/material/Stack';
+import Divider from '@mui/material/Divider';
 
 const style = {
     position: 'absolute',
@@ -15,7 +20,7 @@ const style = {
 };
 
 const LoginModal = (props) => {
-    let { open = false, setOpen, setUserData } = props;
+    let { open = false, setOpen, setUserData, handleFormSubmit } = props;
 
     return (
         <div>
@@ -23,14 +28,21 @@ const LoginModal = (props) => {
                 <Box sx={style}>
                     <Typography
                         id="modal-modal-title"
-                        variant="h6"
+                        variant="h4"
                         component="h2"
+                        pb={2}
                     >
-                        Text in a modal
+                        Login
                     </Typography>
+                    {/* To include: Actually make the dang thing functional */}
+                    <Stack spacing={1}>
+                        <TextField required label="Username" variant="outlined" />
+                        <TextField required type="password" label="Password" variant="outlined" />
+                        <Divider />
+                        <Button variant="contained">Log In</Button>
+                    </Stack>
                     <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                        Duis mollis, est non commodo luctus, nisi erat porttitor
-                        ligula.
+                        Don't have an account? Sign up here:
                     </Typography>
                 </Box>
             </Modal>
