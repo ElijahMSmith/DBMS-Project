@@ -1,27 +1,31 @@
 import { useState } from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import Menu from '@mui/material/Menu';
-import Button from '@mui/material/Button';
-import MenuItem from '@mui/material/MenuItem';
+import {
+    AppBar,
+    Box,
+    Toolbar,
+    IconButton,
+    Typography,
+    Menu,
+    Button,
+    MenuItem,
+} from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircleOutlined';
-import { Link } from 'react-router-dom';
 import LoginModal from './LoginModal';
+import SignupModal from './SignupModal';
+import { Link, Outlet } from 'react-router-dom';
 
 const pages = [
-    { name: 'Events', ref: '/events' },
-    { name: 'Manage RSO', ref: '/manage_rso' },
-    { name: 'Manage University', ref: '/manage_university' },
-    { name: 'Unapproved Events', ref: '/unapproved' },
+    { name: 'Home', ref: '/home', permLevel: 0 },
+    { name: 'RSOs', ref: '/rsos', permLevel: 0 },
+    { name: 'Universities', ref: '/universities', permLevel: 0 },
+    { name: 'My Events', ref: '/myevents', permLevel: 2 },
 ];
 
 const App = () => {
     const [anchorElUser, setAnchorElUser] = useState(null);
     const [user, setUserData] = useState(null);
-    const [loginOpen, setLoginOpen] = useState(true);
+    const [loginOpen, setLoginOpen] = useState(false);
+    const [signupOpen, setSignupOpen] = useState(false);
 
     return (
         <Box sx={{ flexGrow: 1 }}>
@@ -35,6 +39,7 @@ const App = () => {
                             mr: 3,
                             ml: 3,
                             display: { xs: 'none', md: 'flex' },
+                            color: 'white',
                         }}
                     >
                         Univents
@@ -45,20 +50,23 @@ const App = () => {
                             display: { xs: 'none', md: 'flex' },
                         }}
                     >
-                        {pages.map((page) => (
-                            <Button
-                                component={Link}
-                                to={page.ref}
-                                key={page}
-                                sx={{
-                                    my: 2,
-                                    color: 'white',
-                                    display: 'block',
-                                }}
-                            >
-                                {page.name}
-                            </Button>
-                        ))}
+                        {pages.map((page) => {
+                            return (!user && page.permLevel === 0) ||
+                                (user && user.permission >= page.permLevel) ? (
+                                <Button
+                                    component={Link}
+                                    to={page.ref}
+                                    key={page.name}
+                                    sx={{
+                                        my: 2,
+                                        color: 'white',
+                                        display: 'block',
+                                    }}
+                                >
+                                    {page.name}
+                                </Button>
+                            ) : null;
+                        })}
                     </Box>
 
                     {user ? (
@@ -94,7 +102,7 @@ const App = () => {
                                     onClick={() => setAnchorElUser(null)}
                                 >
                                     <Typography textAlign="center">
-                                        Profile
+                                        Account Settings
                                     </Typography>
                                 </MenuItem>
                                 <MenuItem
@@ -125,10 +133,20 @@ const App = () => {
             {loginOpen ? (
                 <LoginModal
                     open={loginOpen}
-                    setOpen={setLoginOpen}
+                    setLoginModalOpen={setLoginOpen}
+                    setSignupModalOpen={setSignupOpen}
                     setUserData={setUserData}
                 />
             ) : null}
+            {signupOpen ? (
+                <SignupModal
+                    open={signupOpen}
+                    setLoginModalOpen={setLoginOpen}
+                    setSignupModalOpen={setSignupOpen}
+                    setUserData={setUserData}
+                />
+            ) : null}
+            <Outlet />
         </Box>
     );
 };
