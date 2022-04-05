@@ -4,8 +4,6 @@ export class User {
         this.uid = uid;
         this.unid = unid;
         this.permission = permission;
-        this.ratings = [];
-        this.comments = [];
     }
 }
 
