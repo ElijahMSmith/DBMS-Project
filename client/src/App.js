@@ -14,7 +14,7 @@ import {
 import AccountCircleIcon from '@mui/icons-material/AccountCircleOutlined';
 import LoginModal from './LoginModal';
 import SignupModal from './SignupModal';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 
 const pages = [
     { name: 'Home', ref: '/', permLevel: 0 },
@@ -32,6 +32,7 @@ const App = (props) => {
     const [snackbarMessage, setSnackbarMessage] = useState(
         'Logged in successfully!'
     );
+    const navigate = useNavigate();
 
     const { userData, setUserData } = props;
 
@@ -114,13 +115,12 @@ const App = (props) => {
                             >
                                 <MenuItem
                                     key="Profile"
-                                    onClick={() => setAnchorElUser(null)}
+                                    onClick={() => {
+                                        setAnchorElUser(null);
+                                        navigate('/account');
+                                    }}
                                 >
-                                    <Typography
-                                        textAlign="center"
-                                        component={Link}
-                                        to="account"
-                                    >
+                                    <Typography textAlign="center">
                                         My Account
                                     </Typography>
                                 </MenuItem>
@@ -129,6 +129,7 @@ const App = (props) => {
                                     onClick={() => {
                                         setAnchorElUser(null);
                                         setUserData(null);
+                                        navigate('/');
                                     }}
                                 >
                                     <Typography textAlign="center">

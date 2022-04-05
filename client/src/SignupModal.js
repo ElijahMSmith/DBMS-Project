@@ -47,7 +47,7 @@ const SignupModal = (props) => {
     const [university, setUniversity] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
 
-    const submitRegister = () => {
+    const submitRegistration = () => {
         if (
             username === '' ||
             email === '' ||
@@ -86,75 +86,81 @@ const SignupModal = (props) => {
     return (
         <Modal open={open} onClose={() => setSignupModalOpen(false)}>
             <Box sx={style}>
-                <Typography variant="h4" sx={{ pb: 2, textAlign: 'center' }}>
-                    Create New Account
-                </Typography>
-                <Stack spacing={1}>
-                    <TextField
-                        required
-                        type="text"
-                        label="Username"
-                        variant="outlined"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                    />
-                    <TextField
-                        required
-                        type="email"
-                        label="Email"
-                        variant="outlined"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-                    <TextField
-                        required
-                        type="password"
-                        label="Password"
-                        variant="outlined"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                    <Autocomplete
-                        disablePortal
-                        options={universities}
-                        onChange={(e, newValue) => {
-                            console.log('test');
-                            console.log(newValue);
-                            setUniversity(newValue ?? '');
-                        }}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label="University"
-                                value={university}
-                                required
-                            />
-                        )}
-                    />
-                    <Divider />
-                    <Button variant="contained" onClick={submitRegister}>
-                        Create
-                    </Button>
-                    {errorMsg !== '' ? (
-                        <Typography
-                            sx={{ color: 'red', textAlign: 'center' }}
-                            variant="p"
-                        >
-                            {errorMsg}
-                        </Typography>
-                    ) : null}
-                </Stack>
-                <Typography sx={{ mt: 2, textAlign: 'center' }}>
-                    Already have an account?{' '}
-                    <Link
-                        onClick={() => {
-                            setLoginModalOpen(true);
-                            setSignupModalOpen(false);
-                        }}
+                <form onSubmit={(e) => e.preventDefault()}>
+                    <Typography
+                        variant="h4"
+                        sx={{ pb: 2, textAlign: 'center' }}
                     >
-                        Log in
-                    </Link>
-                </Typography>
+                        Create New Account
+                    </Typography>
+                    <Stack spacing={1}>
+                        <TextField
+                            required
+                            type="text"
+                            label="Username"
+                            variant="outlined"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                        />
+                        <TextField
+                            required
+                            type="email"
+                            label="Email"
+                            variant="outlined"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                        <TextField
+                            required
+                            type="password"
+                            label="Password"
+                            variant="outlined"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                        <Autocomplete
+                            disablePortal
+                            options={universities}
+                            onChange={(e, newValue) => {
+                                setUniversity(newValue ?? '');
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="University"
+                                    value={university}
+                                    required
+                                />
+                            )}
+                        />
+                        <Divider />
+                        <Button
+                            variant="contained"
+                            onClick={submitRegistration}
+                        >
+                            Create
+                        </Button>
+                        {errorMsg !== '' ? (
+                            <Typography
+                                sx={{ color: 'red', textAlign: 'center' }}
+                                variant="p"
+                            >
+                                {errorMsg}
+                            </Typography>
+                        ) : null}
+                    </Stack>
+                    <Typography sx={{ mt: 2, textAlign: 'center' }}>
+                        Already have an account?{' '}
+                        <Link
+                            onClick={() => {
+                                setLoginModalOpen(true);
+                                setSignupModalOpen(false);
+                            }}
+                        >
+                            Log in
+                        </Link>
+                    </Typography>
+                </form>
             </Box>
         </Modal>
     );
