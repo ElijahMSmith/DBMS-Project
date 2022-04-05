@@ -59,18 +59,24 @@ const SignupModal = (props) => {
                             type="text"
                             label="Username"
                             variant="outlined"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                         />
                         <TextField
                             required
                             type="email"
                             label="Email"
                             variant="outlined"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                         />
                         <TextField
                             required
                             type="password"
                             label="Password"
                             variant="outlined"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                         />
                         <Autocomplete
                             disablePortal
@@ -80,12 +86,23 @@ const SignupModal = (props) => {
                                 <TextField
                                     {...params}
                                     label="University"
+                                    value={university}
                                     required
                                 />
                             )}
                         />
                         <Divider />
-                        <Button variant="contained">Create</Button>
+                        <Button
+                            variant="contained"
+                            onClick={() => {
+                                console.log(username);
+                                console.log(password);
+                                console.log(email);
+                                console.log(university);
+                            }}
+                        >
+                            Create
+                        </Button>
                     </Stack>
                     <Typography sx={{ mt: 2, textAlign: 'center' }}>
                         Already have an account?{' '}

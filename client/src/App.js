@@ -15,17 +15,18 @@ import SignupModal from './SignupModal';
 import { Link, Outlet } from 'react-router-dom';
 
 const pages = [
-    { name: 'Home', ref: '/home', permLevel: 0 },
+    { name: 'Home', ref: '/', permLevel: 0 },
     { name: 'RSOs', ref: '/rsos', permLevel: 0 },
     { name: 'Universities', ref: '/universities', permLevel: 0 },
     { name: 'My Events', ref: '/myevents', permLevel: 2 },
 ];
 
-const App = () => {
+const App = (props) => {
     const [anchorElUser, setAnchorElUser] = useState(null);
-    const [user, setUserData] = useState(null);
     const [loginOpen, setLoginOpen] = useState(false);
     const [signupOpen, setSignupOpen] = useState(false);
+
+    const { userData, setUserData } = props;
 
     return (
         <Box sx={{ flexGrow: 1 }}>
@@ -51,8 +52,9 @@ const App = () => {
                         }}
                     >
                         {pages.map((page) => {
-                            return (!user && page.permLevel === 0) ||
-                                (user && user.permission >= page.permLevel) ? (
+                            return (!userData && page.permLevel === 0) ||
+                                (userData &&
+                                    userData.permission >= page.permLevel) ? (
                                 <Button
                                     component={Link}
                                     to={page.ref}
@@ -69,7 +71,7 @@ const App = () => {
                         })}
                     </Box>
 
-                    {user ? (
+                    {userData ? (
                         <Box sx={{ flexGrow: 0 }}>
                             <IconButton
                                 onClick={(event) =>
