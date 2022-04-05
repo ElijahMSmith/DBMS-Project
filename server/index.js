@@ -4,6 +4,13 @@ const express = require('express');
 
 const app = express();
 
+const cors = require('cors');
+app.use(
+    cors({
+        origin: '*',
+    })
+);
+
 // Import routes
 const authRoutes = require('./routes/authentication');
 const uniRoutes  = require('./routes/university');
@@ -18,27 +25,27 @@ sql.connect(config)
         pool.query(
             `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Users' and xtype='U') 
             CREATE TABLE Users (uid CHAR(36) PRIMARY KEY, username VARCHAR(64), email VARCHAR(64) UNIQUE, pass VARCHAR(64), unid CHAR(36), permLevel TINYINT)`
-        ).catch((err) => console.error("Users Error: " + err));
+        ).catch((err) => console.error('Users Error: ' + err));
 
         pool.query(
             `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Universities' and xtype='U') 
             CREATE TABLE Universities (unid CHAR(36) PRIMARY KEY, name VARCHAR(40) UNIQUE, description VARCHAR(300), numStudents INTEGER)`
-        ).catch((err) => console.error("Universities Error: " + err));
+        ).catch((err) => console.error('Universities Error: ' + err));
 
         pool.query(
             `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='RSOs' and xtype='U') 
             CREATE TABLE RSOs (rsoid CHAR(36) PRIMARY KEY, uid CHAR(36), unid CHAR(36), name VARCHAR(40) UNIQUE, description VARCHAR(300), numMembers INTEGER, FOREIGN KEY (uid) REFERENCES Users, FOREIGN KEY (unid) REFERENCES Universities)`
-        ).catch((err) => console.error("RSOs Error: " + err));
+        ).catch((err) => console.error('RSOs Error: ' + err));
 
         pool.query(
             `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Manages' and xtype='U') 
             CREATE TABLE Manages (unid CHAR(36) PRIMARY KEY, uid CHAR(36), FOREIGN KEY (uid) REFERENCES Users, FOREIGN KEY (unid) REFERENCES Universities)`
-        ).catch((err) => console.error("Manages Error: " + err));
+        ).catch((err) => console.error('Manages Error: ' + err));
 
         pool.query(
             `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Affiliated' and xtype='U') 
                 CREATE TABLE Affiliated (unid CHAR(36), uid CHAR(36) PRIMARY KEY, FOREIGN KEY (uid) REFERENCES Users, FOREIGN KEY (unid) REFERENCES Universities)`
-        ).catch((err) => console.error("Affiliated Error: " + err));
+        ).catch((err) => console.error('Affiliated Error: ' + err));
 
         /*
 
@@ -52,12 +59,12 @@ sql.connect(config)
         pool.query(
             `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='MemberOf' and xtype='U') 
                 CREATE TABLE MemberOf (rsoid CHAR(36), uid CHAR(36), FOREIGN KEY (uid) REFERENCES Users, FOREIGN KEY (rsoid) REFERENCES RSOs)`
-        ).catch((err) => console.error("MemeberOf Error: " + err));
+        ).catch((err) => console.error('MemeberOf Error: ' + err));
 
         pool.query(
             `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='PictureOf' and xtype='U') 
                 CREATE TABLE PictureOf (unid CHAR(36) PRIMARY KEY, url VARCHAR(150), FOREIGN KEY (unid) REFERENCES Universities)`
-        ).catch((err) => console.error("PictureOf Error: " + err));
+        ).catch((err) => console.error('PictureOf Error: ' + err));
 
         /*
         
@@ -73,14 +80,13 @@ sql.connect(config)
         pool.query(
             `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Comments' and xtype='U') 
                         CREATE TABLE Comments (cid CHAR(36) PRIMARY KEY, eid CHAR(36), description VARCHAR(300), date DATE, FOREIGN KEY (eid) REFERENCES Events)`
-        ).catch((err) => console.error("Comments Error: " + err));
-
+        ).catch((err) => console.error('Comments Error: ' + err));
         // Ratings
 
         pool.query(
             `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Ratings' and xtype='U') 
                         CREATE TABLE Ratings (uid CHAR(36) PRIMARY KEY, eid CHAR(36), numStars INTEGER, date DATE, FOREIGN KEY (uid) REFERENCES Users, FOREIGN KEY (eid) REFERENCES Events)`
-        ).catch((err) => console.error("Ratings Error: " + err));
+        ).catch((err) => console.error('Ratings Error: ' + err));
 
         // Event Tables
 
@@ -114,9 +120,9 @@ sql.connect(config)
                             FOREIGN KEY (unid) REFERENCES Universities,
                             FOREIGN KEY (rsoid) REFERENCES RSOs,
                             )`
-        ).catch((err) => console.error("Events Error: " + err));
+        ).catch((err) => console.error('Events Error: ' + err));
     })
-    .catch((err) => console.error("Total Error: " + err));
+    .catch((err) => console.error('Total Error: ' + err));
 
 app.listen(config.port, () => {
     console.log(`App is listening at http://localhost:${config.port}`);

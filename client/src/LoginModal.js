@@ -7,6 +7,8 @@ import Modal from '@mui/material/Modal';
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
 import { Link } from '@mui/material';
+import axios from 'axios';
+import User from './classes/User';
 
 const style = {
     position: 'absolute',
@@ -26,15 +28,38 @@ const LoginModal = (props) => {
         setLoginModalOpen,
         setSignupModalOpen,
         setUserData,
+        setSnackbar,
     } = props;
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [errorMsg, setErrorMsg] = useState('');
+
+    const submitLogin = () => {
+        axios
+            .post('http://localhost:1433/auth/login', { username, password })
+            .then((resp) => {
+                // Good
+                const { uid, username, email, unid, permLevel } = resp.data;
+                setUserData(new User(uid, username, email, unid, permLevel));
+                setErrorMsg('');
+                setSnackbar(true, 'success', 'Logged in successfully!');
+                setLoginModalOpen(false);
+            })
+            .catch((err) => {
+                if (err.response && err.response.status === 406)
+                    setErrorMsg('Incorrect username or password.');
+                else {
+                    setErrorMsg('An unexpected error occurred.');
+                    console.log(err);
+                }
+            });
+    };
 
     return (
-        <div>
-            <Modal open={open} onClose={() => setLoginModalOpen(false)}>
-                <Box sx={style}>
+        <Modal open={open} onClose={() => setLoginModalOpen(false)}>
+            <Box sx={style}>
+                <form onSubmit={(e) => e.preventDefault()}>
                     <Typography
                         variant="h4"
                         sx={{ pb: 2, textAlign: 'center' }}
@@ -60,13 +85,19 @@ const LoginModal = (props) => {
                         <Divider />
                         <Button
                             variant="contained"
-                            onClick={() => {
-                                console.log(username);
-                                console.log(password);
-                            }}
+                            type="submit"
+                            onClick={submitLogin}
                         >
                             Log In
                         </Button>
+                        {errorMsg !== '' ? (
+                            <Typography
+                                sx={{ color: 'red', textAlign: 'center' }}
+                                variant="p"
+                            >
+                                {errorMsg}
+                            </Typography>
+                        ) : null}
                     </Stack>
                     <Typography sx={{ mt: 2, textAlign: 'center' }}>
                         Don't have an account?{' '}
@@ -79,9 +110,9 @@ const LoginModal = (props) => {
                             Sign up here
                         </Link>
                     </Typography>
-                </Box>
-            </Modal>
-        </div>
+                </form>
+            </Box>
+        </Modal>
     );
 };
 
