@@ -64,13 +64,6 @@ router.post('/login', async (req, res) => {
         
         const userData = result.recordset[0];
         
-        // Trim data
-        for(const [key, value] of Object.entries(userData))
-        {
-            if(typeof value === 'string' || value instanceof String)
-                userData[key] = value.trim();
-        }
-            
         // Check if password matches
         if(userData["pass"] !== password)
             return res.status(406).send({"error": "Incorrect Password"});

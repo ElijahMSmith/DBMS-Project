@@ -6,26 +6,28 @@ const app = express();
 
 // Import routes
 const authRoutes = require('./routes/authentication');
+const uniRoutes  = require('./routes/university');
 
 // Middlewares
 app.use(express.json());
 app.use('/auth', authRoutes);
+app.use('/universities', uniRoutes);
 
 sql.connect(config)
     .then(async (pool) => {
         pool.query(
             `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Users' and xtype='U') 
-            CREATE TABLE Users (uid CHAR(36) PRIMARY KEY, username CHAR(64), email CHAR(64) UNIQUE, pass CHAR(64), unid CHAR(36), permLevel TINYINT)`
+            CREATE TABLE Users (uid CHAR(36) PRIMARY KEY, username VARCHAR(64), email VARCHAR(64) UNIQUE, pass VARCHAR(64), unid CHAR(36), permLevel TINYINT)`
         ).catch((err) => console.error("Users Error: " + err));
 
         pool.query(
             `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Universities' and xtype='U') 
-            CREATE TABLE Universities (unid CHAR(36) PRIMARY KEY, name CHAR(40) UNIQUE, description CHAR(300), numStudents INTEGER)`
+            CREATE TABLE Universities (unid CHAR(36) PRIMARY KEY, name VARCHAR(40) UNIQUE, description VARCHAR(300), numStudents INTEGER)`
         ).catch((err) => console.error("Universities Error: " + err));
 
         pool.query(
             `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='RSOs' and xtype='U') 
-            CREATE TABLE RSOs (rsoid CHAR(36) PRIMARY KEY, uid CHAR(36), unid CHAR(36), name CHAR(40) UNIQUE, description CHAR(300), numMembers INTEGER, FOREIGN KEY (uid) REFERENCES Users, FOREIGN KEY (unid) REFERENCES Universities)`
+            CREATE TABLE RSOs (rsoid CHAR(36) PRIMARY KEY, uid CHAR(36), unid CHAR(36), name VARCHAR(40) UNIQUE, description VARCHAR(300), numMembers INTEGER, FOREIGN KEY (uid) REFERENCES Users, FOREIGN KEY (unid) REFERENCES Universities)`
         ).catch((err) => console.error("RSOs Error: " + err));
 
         pool.query(
@@ -54,7 +56,7 @@ sql.connect(config)
 
         pool.query(
             `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='PictureOf' and xtype='U') 
-                CREATE TABLE PictureOf (unid CHAR(36) PRIMARY KEY, url CHAR(150), FOREIGN KEY (unid) REFERENCES Universities)`
+                CREATE TABLE PictureOf (unid CHAR(36) PRIMARY KEY, url VARCHAR(150), FOREIGN KEY (unid) REFERENCES Universities)`
         ).catch((err) => console.error("PictureOf Error: " + err));
 
         /*
@@ -70,13 +72,8 @@ sql.connect(config)
 
         pool.query(
             `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Comments' and xtype='U') 
-                        CREATE TABLE Comments (cid CHAR(36) PRIMARY KEY, description CHAR(300), date DATE)`
+                        CREATE TABLE Comments (cid CHAR(36) PRIMARY KEY, eid CHAR(36), description VARCHAR(300), date DATE, FOREIGN KEY (eid) REFERENCES Events)`
         ).catch((err) => console.error("Comments Error: " + err));
-
-        pool.query(
-            `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='CommentsOnEvents' and xtype='U') 
-                        CREATE TABLE CommentsOnEvents (cid CHAR(36) PRIMARY KEY, uid CHAR(36), eid CHAR(36), FOREIGN KEY (cid) REFERENCES Comments, FOREIGN KEY (uid) REFERENCES Users, FOREIGN KEY (eid) REFERENCES Events)`
-        ).catch((err) => console.error("CommentsOnEvents Error: " + err));
 
         // Ratings
 
@@ -103,14 +100,14 @@ sql.connect(config)
                             uid CHAR(36),
                             unid CHAR(36),
                             rsoid CHAR(36),
-                            name CHAR(36),
-                            description CHAR(512),
-                            category CHAR(36),
+                            name VARCHAR(36),
+                            description VARCHAR(512),
+                            category VARCHAR(36),
                             time TIME,
                             date DATE,
-                            location CHAR(64),
-                            contactPhone CHAR(16),
-                            contactEmail CHAR(64),
+                            location VARCHAR(64),
+                            contactPhone VARCHAR(16),
+                            contactEmail VARCHAR(64),
                             published BIT,
                             approved BIT,
                             FOREIGN KEY (uid) REFERENCES Users,
