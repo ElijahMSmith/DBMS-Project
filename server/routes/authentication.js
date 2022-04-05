@@ -21,27 +21,41 @@ router.post('/register', async (req, res) => {
         email,
         username,
         password,
-        uniName,
-        userType, // 1 = student, 2 = admin, 3 = superadmin
+        unid,
     } = req.body;
+    
+    // Connect to DB
+    const connectionPromise = sql.connect(config);
 
-    // Check if email already exists in any tables
-    // Insert user into the table according to userType
-    // Get unid from university table if that uniName already exists,
-    // Otherwise give a new random id using
-    // uuidv4() // ⇨ '630eb68f-e0fa-5ecc-887a-7c7a62614681'
+    return connectionPromise.then(async(pool) => {
+        // Check if email already exists in the Users table
+        let request = `SELECT * FROM Users WHERE email = '${email}'`;
+        let result = await pool.query(request);
 
-    // Return the user object needed
+        // If result contains any data, then we return with some information about incorrect things
+        if(result.recordset.length > 0)
+            return res.status(406).send({"error": "An account with that email already exists"});
+        
+        // Next: Generate the user's uuid
+        const newUserID = uuidv4();
 
-    sql.connect(config)
-        .then(async (pool) => {
-            const request = `SELECT * FROM Student S WHERE S.email = '${email}'`;
-            console.log(request);
-            const result = await pool.query(request);
-            console.dir(result);
-            return res.status(200).send({ result });
-        })
-        .catch((error) => res.status(400).send({ error }));
+        // Push this user information into our database
+        request = `INSERT INTO Users VALUES ('${newUserID}', '${username}', '${email}', '${password}', '${unid}', 1)`;
+        result = await pool.query(request);
+
+        // Something wrong happened!
+        if(result.rowsAffected != 1)
+            return res.status(500).send({"error": "An unknown internal server error occured during account creation"});
+        
+        // Return the newly-created user object
+        return res.status(200).send({
+            "uid": newUserID,
+            "username": username,
+            "email": email,
+            "unid": unid,
+            "permLevel": 1
+        });
+    }).catch((err) => res.status(500).send(err));
 });
 
 // Login Route
