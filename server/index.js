@@ -64,9 +64,6 @@ sql.connect(config)
                         CREATE TABLE Comments (cid CHAR(36) PRIMARY KEY, description CHAR(300), date DATE)`
         );
 
-
-
-
         pool.query(
             `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Comments' and xtype='U') 
                 CREATE TABLE Comments (cid CHAR(36) PRIMARY KEY, description CHAR(300), date DATE)`
