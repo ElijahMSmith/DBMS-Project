@@ -1,9 +1,9 @@
 TODOS:
 
 - [x] Authentication Routes
-- [ ] University Endpoints
-  - [ ] Create/Edit University
-  - [ ] Get University Information
+- [x] University Endpoints
+  - [x] Create/Edit University
+  - [x] Get University Information
   - [x] Get All Universities
 - [ ] RSO Endpoints
   - [ ] Create/Edit RSO
