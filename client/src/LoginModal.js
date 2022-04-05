@@ -6,6 +6,7 @@ import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
+import { Link } from '@mui/material';
 
 const style = {
     position: 'absolute',
@@ -20,29 +21,63 @@ const style = {
 };
 
 const LoginModal = (props) => {
-    let { open = false, setOpen, setUserData, handleFormSubmit } = props;
+    let {
+        open = false,
+        setLoginModalOpen,
+        setSignupModalOpen,
+        setUserData,
+    } = props;
+
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
 
     return (
         <div>
-            <Modal open={open} onClose={() => setOpen(false)}>
+            <Modal open={open} onClose={() => setLoginModalOpen(false)}>
                 <Box sx={style}>
                     <Typography
-                        id="modal-modal-title"
                         variant="h4"
-                        component="h2"
-                        pb={2}
+                        sx={{ pb: 2, textAlign: 'center' }}
                     >
                         Login
                     </Typography>
-                    {/* To include: Actually make the dang thing functional */}
                     <Stack spacing={1}>
-                        <TextField required label="Username" variant="outlined" />
-                        <TextField required type="password" label="Password" variant="outlined" />
+                        <TextField
+                            required
+                            label="Username"
+                            variant="outlined"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                        />
+                        <TextField
+                            required
+                            label="Password"
+                            type="password"
+                            variant="outlined"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
                         <Divider />
-                        <Button variant="contained">Log In</Button>
+                        <Button
+                            variant="contained"
+                            onClick={() => {
+                                console.log(username);
+                                console.log(password);
+                            }}
+                        >
+                            Log In
+                        </Button>
                     </Stack>
-                    <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                        Don't have an account? Sign up here:
+                    <Typography sx={{ mt: 2, textAlign: 'center' }}>
+                        Don't have an account?{' '}
+                        <Link
+                            onClick={() => {
+                                setLoginModalOpen(false);
+                                setSignupModalOpen(true);
+                            }}
+                        >
+                            Sign up here
+                        </Link>
                     </Typography>
                 </Box>
             </Modal>
