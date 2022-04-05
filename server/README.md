@@ -4,7 +4,7 @@ TODOS:
 - [ ] University Endpoints
   - [ ] Create/Edit University
   - [ ] Get University Information
-  - [ ] Get All Universities
+  - [x] Get All Universities
 - [ ] RSO Endpoints
   - [ ] Create/Edit RSO
   - [ ] GET all RSOs for a university
