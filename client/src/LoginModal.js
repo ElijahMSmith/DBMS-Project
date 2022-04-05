@@ -7,6 +7,8 @@ import Modal from '@mui/material/Modal';
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
 import { Link } from '@mui/material';
+import axios from 'axios';
+import User from './classes/User';
 
 const style = {
     position: 'absolute',
@@ -30,6 +32,28 @@ const LoginModal = (props) => {
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [errorMsg, setErrorMsg] = useState('');
+
+    const submitLogin = () => {
+        axios
+            .post('http://localhost:1433/auth/login', { username, password })
+            .then((resp) => {
+                // Good
+                const { uid, username, email, unid, permLevel } = resp.data;
+                setUserData(new User(uid, username, email, unid, permLevel));
+                setErrorMsg('');
+                console.log('Signed in successfully!');
+                setLoginModalOpen(false);
+            })
+            .catch((err) => {
+                if (err.response && err.response.status === 406)
+                    setErrorMsg('Incorrect username or password.');
+                else {
+                    setErrorMsg('An unexpected error occurred.');
+                    console.log(err);
+                }
+            });
+    };
 
     return (
         <div>
@@ -58,15 +82,17 @@ const LoginModal = (props) => {
                             onChange={(e) => setPassword(e.target.value)}
                         />
                         <Divider />
-                        <Button
-                            variant="contained"
-                            onClick={() => {
-                                console.log(username);
-                                console.log(password);
-                            }}
-                        >
+                        <Button variant="contained" onClick={submitLogin}>
                             Log In
                         </Button>
+                        {errorMsg !== '' ? (
+                            <Typography
+                                sx={{ color: 'red', textAlign: 'center' }}
+                                variant="p"
+                            >
+                                {errorMsg}
+                            </Typography>
+                        ) : null}
                     </Stack>
                     <Typography sx={{ mt: 2, textAlign: 'center' }}>
                         Don't have an account?{' '}

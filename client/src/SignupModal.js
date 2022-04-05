@@ -10,6 +10,8 @@ import {
     Divider,
     Link,
 } from '@mui/material';
+import axios from 'axios';
+import User from './classes/User';
 
 const style = {
     position: 'absolute',
@@ -31,17 +33,54 @@ const SignupModal = (props) => {
         setUserData,
     } = props;
 
-    const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [university, setUniversity] = useState('');
-
     const universities = [
         'University of Central Florida',
         'University of South Florida',
         'University of North Florida',
         'University of Pennsylvania',
     ];
+
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [university, setUniversity] = useState('');
+    const [errorMsg, setErrorMsg] = useState('');
+
+    const submitRegister = () => {
+        if (
+            username === '' ||
+            email === '' ||
+            password === '' ||
+            university === ''
+        ) {
+            setErrorMsg('One or more fields are empty.');
+            return;
+        }
+
+        axios
+            .post('http://localhost:1433/auth/register', {
+                email,
+                username,
+                password,
+                unid: 'notarealunid', // TODO: Obtain unid from an endpoint and put here
+            })
+            .then((resp) => {
+                // Good
+                const { uid, username, email, unid, permLevel } = resp.data;
+                setUserData(new User(uid, username, email, unid, permLevel));
+                setErrorMsg('');
+                console.log('Signed in successfully!');
+                setSignupModalOpen(false);
+            })
+            .catch((err) => {
+                if (err.response && err.response.status === 406)
+                    setErrorMsg('That email is already in use!');
+                else {
+                    setErrorMsg('An unexpected error occurred.');
+                    console.log(err);
+                }
+            });
+    };
 
     return (
         <div>
@@ -81,7 +120,11 @@ const SignupModal = (props) => {
                         <Autocomplete
                             disablePortal
                             options={universities}
-                            onChange={(e, newValue) => setUniversity(newValue)}
+                            onChange={(e, newValue) => {
+                                console.log('test');
+                                console.log(newValue);
+                                setUniversity(newValue ?? '');
+                            }}
                             renderInput={(params) => (
                                 <TextField
                                     {...params}
@@ -92,17 +135,17 @@ const SignupModal = (props) => {
                             )}
                         />
                         <Divider />
-                        <Button
-                            variant="contained"
-                            onClick={() => {
-                                console.log(username);
-                                console.log(password);
-                                console.log(email);
-                                console.log(university);
-                            }}
-                        >
+                        <Button variant="contained" onClick={submitRegister}>
                             Create
                         </Button>
+                        {errorMsg !== '' ? (
+                            <Typography
+                                sx={{ color: 'red', textAlign: 'center' }}
+                                variant="p"
+                            >
+                                {errorMsg}
+                            </Typography>
+                        ) : null}
                     </Stack>
                     <Typography sx={{ mt: 2, textAlign: 'center' }}>
                         Already have an account?{' '}
