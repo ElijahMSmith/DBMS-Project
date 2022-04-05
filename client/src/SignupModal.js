@@ -10,6 +10,8 @@ import {
     Divider,
     Link,
 } from '@mui/material';
+import axios from 'axios';
+import User from './classes/User';
 
 const style = {
     position: 'absolute',
@@ -29,12 +31,8 @@ const SignupModal = (props) => {
         setLoginModalOpen,
         setSignupModalOpen,
         setUserData,
+        setSnackbar,
     } = props;
-
-    const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [university, setUniversity] = useState('');
 
     const universities = [
         'University of Central Florida',
@@ -43,10 +41,52 @@ const SignupModal = (props) => {
         'University of Pennsylvania',
     ];
 
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [university, setUniversity] = useState('');
+    const [errorMsg, setErrorMsg] = useState('');
+
+    const submitRegistration = () => {
+        if (
+            username === '' ||
+            email === '' ||
+            password === '' ||
+            university === ''
+        ) {
+            setErrorMsg('One or more fields are empty.');
+            return;
+        }
+
+        axios
+            .post('http://localhost:1433/auth/register', {
+                email,
+                username,
+                password,
+                unid: 'notarealunid', // TODO: Obtain unid from an endpoint and put here
+            })
+            .then((resp) => {
+                // Good
+                const { uid, username, email, unid, permLevel } = resp.data;
+                setUserData(new User(uid, username, email, unid, permLevel));
+                setErrorMsg('');
+                setSnackbar(true, 'success', 'Registered successfully!');
+                setSignupModalOpen(false);
+            })
+            .catch((err) => {
+                if (err.response && err.response.status === 406)
+                    setErrorMsg('That email is already in use!');
+                else {
+                    setErrorMsg('An unexpected error occurred.');
+                    console.log(err);
+                }
+            });
+    };
+
     return (
-        <div>
-            <Modal open={open} onClose={() => setSignupModalOpen(false)}>
-                <Box sx={style}>
+        <Modal open={open} onClose={() => setSignupModalOpen(false)}>
+            <Box sx={style}>
+                <form onSubmit={(e) => e.preventDefault()}>
                     <Typography
                         variant="h4"
                         sx={{ pb: 2, textAlign: 'center' }}
@@ -59,33 +99,55 @@ const SignupModal = (props) => {
                             type="text"
                             label="Username"
                             variant="outlined"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                         />
                         <TextField
                             required
                             type="email"
                             label="Email"
                             variant="outlined"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                         />
                         <TextField
                             required
                             type="password"
                             label="Password"
                             variant="outlined"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                         />
                         <Autocomplete
                             disablePortal
                             options={universities}
-                            onChange={(e, newValue) => setUniversity(newValue)}
+                            onChange={(e, newValue) => {
+                                setUniversity(newValue ?? '');
+                            }}
                             renderInput={(params) => (
                                 <TextField
                                     {...params}
                                     label="University"
+                                    value={university}
                                     required
                                 />
                             )}
                         />
                         <Divider />
-                        <Button variant="contained">Create</Button>
+                        <Button
+                            variant="contained"
+                            onClick={submitRegistration}
+                        >
+                            Create
+                        </Button>
+                        {errorMsg !== '' ? (
+                            <Typography
+                                sx={{ color: 'red', textAlign: 'center' }}
+                                variant="p"
+                            >
+                                {errorMsg}
+                            </Typography>
+                        ) : null}
                     </Stack>
                     <Typography sx={{ mt: 2, textAlign: 'center' }}>
                         Already have an account?{' '}
@@ -98,9 +160,9 @@ const SignupModal = (props) => {
                             Log in
                         </Link>
                     </Typography>
-                </Box>
-            </Modal>
-        </div>
+                </form>
+            </Box>
+        </Modal>
     );
 };
 

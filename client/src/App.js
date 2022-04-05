@@ -8,24 +8,39 @@ import {
     Menu,
     Button,
     MenuItem,
+    Snackbar,
+    Alert,
 } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircleOutlined';
 import LoginModal from './LoginModal';
 import SignupModal from './SignupModal';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 
 const pages = [
-    { name: 'Home', ref: '/home', permLevel: 0 },
+    { name: 'Home', ref: '/', permLevel: 0 },
     { name: 'RSOs', ref: '/rsos', permLevel: 0 },
     { name: 'Universities', ref: '/universities', permLevel: 0 },
     { name: 'My Events', ref: '/myevents', permLevel: 2 },
 ];
 
-const App = () => {
+const App = (props) => {
     const [anchorElUser, setAnchorElUser] = useState(null);
-    const [user, setUserData] = useState(null);
     const [loginOpen, setLoginOpen] = useState(false);
     const [signupOpen, setSignupOpen] = useState(false);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+    const [snackbarMessage, setSnackbarMessage] = useState(
+        'Logged in successfully!'
+    );
+    const navigate = useNavigate();
+
+    const { userData, setUserData } = props;
+
+    const setSnackbar = (open, severity, message) => {
+        setSnackbarOpen(open);
+        setSnackbarSeverity(severity);
+        setSnackbarMessage(message);
+    };
 
     return (
         <Box sx={{ flexGrow: 1 }}>
@@ -51,8 +66,9 @@ const App = () => {
                         }}
                     >
                         {pages.map((page) => {
-                            return (!user && page.permLevel === 0) ||
-                                (user && user.permission >= page.permLevel) ? (
+                            return (!userData && page.permLevel === 0) ||
+                                (userData &&
+                                    userData.permission >= page.permLevel) ? (
                                 <Button
                                     component={Link}
                                     to={page.ref}
@@ -69,7 +85,7 @@ const App = () => {
                         })}
                     </Box>
 
-                    {user ? (
+                    {userData ? (
                         <Box sx={{ flexGrow: 0 }}>
                             <IconButton
                                 onClick={(event) =>
@@ -99,15 +115,22 @@ const App = () => {
                             >
                                 <MenuItem
                                     key="Profile"
-                                    onClick={() => setAnchorElUser(null)}
+                                    onClick={() => {
+                                        setAnchorElUser(null);
+                                        navigate('/account');
+                                    }}
                                 >
                                     <Typography textAlign="center">
-                                        Account Settings
+                                        My Account
                                     </Typography>
                                 </MenuItem>
                                 <MenuItem
                                     key="Logout"
-                                    onClick={() => setAnchorElUser(null)}
+                                    onClick={() => {
+                                        setAnchorElUser(null);
+                                        setUserData(null);
+                                        navigate('/');
+                                    }}
                                 >
                                     <Typography textAlign="center">
                                         Logout
@@ -136,6 +159,7 @@ const App = () => {
                     setLoginModalOpen={setLoginOpen}
                     setSignupModalOpen={setSignupOpen}
                     setUserData={setUserData}
+                    setSnackbar={setSnackbar}
                 />
             ) : null}
             {signupOpen ? (
@@ -144,8 +168,24 @@ const App = () => {
                     setLoginModalOpen={setLoginOpen}
                     setSignupModalOpen={setSignupOpen}
                     setUserData={setUserData}
+                    setSnackbar={setSnackbar}
                 />
             ) : null}
+            <Snackbar
+                open={snackbarOpen}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                autoHideDuration={5000}
+                onClose={() => setSnackbarOpen(false)}
+                sx={{ width: '400px' }}
+            >
+                <Alert
+                    onClose={() => setSnackbarOpen(false)}
+                    severity={snackbarSeverity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
             <Outlet />
         </Box>
     );
