@@ -1,5 +1,25 @@
 TODOS:
 
--   Set up routes for sign-up and log-in
-    -   No need for security here, make something quick and easy
--   Start writing SQL queries for everything we need and turn them into routes
+- [x] Authentication Routes
+- [ ] University Endpoints
+  - [ ] Create/Edit University
+  - [ ] Get University Information
+  - [ ] Get All Universities
+- [ ] RSO Endpoints
+  - [ ] Create/Edit RSO
+  - [ ] GET all RSOs for a university
+  - [ ] GET a specific RSO
+  - [ ] Join an RSO
+- [ ] Event Endpoints
+  - [ ] Create / Edit an Event
+  - [ ] Delete Event
+  - [ ] Get a list of all events visible to a user
+  - [ ] Get a list of all (private) events at a given university
+  - [ ] Get a list of all (RSO) events from a specific RSO
+  - [ ] Get a list of unapproved events for super-admins
+  - [ ] Get all information about a given event
+  - [ ] POST - allow/approve event
+- [ ] Comment Endpoints:
+  - [ ] Create/Edit comment
+- [ ] Rating Endpoints:
+  - [ ] Create/Edit rating

@@ -3,18 +3,6 @@ const router = require('express').Router();
 const sql = require('mssql');
 const { v4: uuidv4 } = require('uuid');
 
-/*
-app.get('/test', (req, res) => {
-    // These are our 'stored procedures'
-    const query = `SELECT * FROM DBMS`;
-    const request = new sql.Request();
-    request.query(query, (err, result) => {
-        if (err) res.status(500).send(err);
-        res.send(result);
-    });
-});
-*/
-
 // Registration route
 router.post('/register', async (req, res) => {
     const {
@@ -60,10 +48,40 @@ router.post('/register', async (req, res) => {
 
 // Login Route
 router.post('/login', async (req, res) => {
-    const { username, password } = req;
+    const { username, password } = req.body;
 
-    return res.status(200).send({
-        // uid, username, password, all the info based on their user type
+    // Connect to DB
+    const connectionPromise = sql.connect(config);
+    return connectionPromise.then(async (pool) =>
+    {
+        // Get the user information from the server
+        const request = `SELECT * FROM Users WHERE username='${username}'`;
+        const result = await pool.query(request);
+
+        // Check if user data exists
+        if(result.recordset.length <= 0)
+            return res.status(406).send({"error": "Unknown Username"});
+        
+        const userData = result.recordset[0];
+        
+        // Trim data
+        for(const [key, value] of Object.entries(userData))
+        {
+            if(typeof value === 'string' || value instanceof String)
+                userData[key] = value.trim();
+        }
+            
+        // Check if password matches
+        if(userData["pass"] !== password)
+            return res.status(406).send({"error": "Incorrect Password"});
+
+        delete userData["pass"];
+
+        // Otherwise, return user data
+        return res.status(200).send(userData);
+    }).catch((err) =>
+    {
+        return res.status(500).send({"error": err})
     });
 });
 
