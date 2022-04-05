@@ -3,18 +3,6 @@ const router = require('express').Router();
 const sql = require('mssql');
 const { v4: uuidv4 } = require('uuid');
 
-/*
-app.get('/test', (req, res) => {
-    // These are our 'stored procedures'
-    const query = `SELECT * FROM DBMS`;
-    const request = new sql.Request();
-    request.query(query, (err, result) => {
-        if (err) res.status(500).send(err);
-        res.send(result);
-    });
-});
-*/
-
 // Registration route
 router.post('/register', async (req, res) => {
     const {
