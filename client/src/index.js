@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import RSOs from './pages/RSOs';
 import Universities from './pages/Universities';
 import MyEvents from './pages/MyEvents';
+import Account from './pages/Account';
 import { Typography } from '@mui/material';
 
 const container = document.getElementById('root');
@@ -53,6 +54,15 @@ const ContainerComponent = () => {
                         path="myevents"
                         element={
                             <MyEvents
+                                userData={userData}
+                                setUserData={setUserData}
+                            />
+                        }
+                    />
+                    <Route
+                        path="account"
+                        element={
+                            <Account
                                 userData={userData}
                                 setUserData={setUserData}
                             />
