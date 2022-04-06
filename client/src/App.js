@@ -68,7 +68,7 @@ const App = (props) => {
                         {pages.map((page) => {
                             return (!userData && page.permLevel === 0) ||
                                 (userData &&
-                                    userData.permission >= page.permLevel) ? (
+                                    userData.permLevel >= page.permLevel) ? (
                                 <Button
                                     component={Link}
                                     to={page.ref}

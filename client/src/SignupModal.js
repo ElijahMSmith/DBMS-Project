@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Autocomplete,
     TextField,
@@ -34,26 +34,39 @@ const SignupModal = (props) => {
         setSnackbar,
     } = props;
 
-    const universities = [
-        'University of Central Florida',
-        'University of South Florida',
-        'University of North Florida',
-        'University of Pennsylvania',
-    ];
-
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [unid, setUnid] = useState('');
     const [university, setUniversity] = useState('');
+    const [universitiesList, setUniversitiesList] = useState([]);
     const [errorMsg, setErrorMsg] = useState('');
 
+    useEffect(() => {
+        axios
+            .get('http://localhost:1433/universities/')
+            .then((resp) => {
+                if (resp.status === 200) {
+                    setUniversitiesList(
+                        resp.data.universities.map((univ) => {
+                            return {
+                                name: univ.name,
+                                unid: univ.unid,
+                            };
+                        })
+                    );
+                } else {
+                    console.log(
+                        'GET all universities returned code ' + resp.status
+                    );
+                    console.log(resp.data);
+                }
+            })
+            .catch((err) => console.log(err));
+    }, [open]);
+
     const submitRegistration = () => {
-        if (
-            username === '' ||
-            email === '' ||
-            password === '' ||
-            university === ''
-        ) {
+        if (username === '' || email === '' || password === '' || unid === '') {
             setErrorMsg('One or more fields are empty.');
             return;
         }
@@ -63,12 +76,12 @@ const SignupModal = (props) => {
                 email,
                 username,
                 password,
-                unid: 'notarealunid', // TODO: Obtain unid from an endpoint and put here
+                unid,
             })
             .then((resp) => {
                 // Good
-                const { uid, username, email, unid, permLevel } = resp.data;
-                setUserData(new User(uid, username, email, unid, permLevel));
+                const { email, permLevel, uid, unid, username } = resp.data;
+                setUserData(new User(username, email, uid, unid, permLevel));
                 setErrorMsg('');
                 setSnackbar(true, 'success', 'Registered successfully!');
                 setSignupModalOpen(false);
@@ -85,82 +98,90 @@ const SignupModal = (props) => {
 
     return (
         <Modal open={open} onClose={() => setSignupModalOpen(false)}>
-            <Box sx={style}>
-                <form onSubmit={(e) => e.preventDefault()}>
-                    <Typography
-                        variant="h4"
-                        sx={{ pb: 2, textAlign: 'center' }}
+            <Box
+                sx={style}
+                component="form"
+                autoComplete="off"
+                onSubmit={(e) => e.preventDefault()}
+            >
+                <Typography variant="h4" sx={{ pb: 2, textAlign: 'center' }}>
+                    Create New Account
+                </Typography>
+                <Stack spacing={1}>
+                    <TextField
+                        required
+                        type="text"
+                        label="Username"
+                        variant="outlined"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
+                    <TextField
+                        required
+                        type="email"
+                        label="Email"
+                        variant="outlined"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                    <TextField
+                        required
+                        type="password"
+                        label="Password"
+                        variant="outlined"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+
+                    <Autocomplete
+                        value={unid !== '' ? { name: university, unid } : null}
+                        disablePortal
+                        options={universitiesList}
+                        getOptionLabel={(univ) => univ.name}
+                        onChange={(e, newValue) => {
+                            setUniversity(newValue ? newValue.name : '');
+                            setUnid(newValue ? newValue.unid : '');
+                        }}
+                        renderInput={(params) => (
+                            <TextField {...params} label="University" />
+                        )}
+                        isOptionEqualToValue={(univ1, univ2) => {
+                            return (
+                                univ1.name === univ2.name &&
+                                univ1.unid === univ2.unid
+                            );
+                        }}
+                    />
+
+                    <Divider />
+
+                    <Button
+                        variant="contained"
+                        type="submit"
+                        onClick={submitRegistration}
                     >
-                        Create New Account
-                    </Typography>
-                    <Stack spacing={1}>
-                        <TextField
-                            required
-                            type="text"
-                            label="Username"
-                            variant="outlined"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                        />
-                        <TextField
-                            required
-                            type="email"
-                            label="Email"
-                            variant="outlined"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                        <TextField
-                            required
-                            type="password"
-                            label="Password"
-                            variant="outlined"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                        <Autocomplete
-                            disablePortal
-                            options={universities}
-                            onChange={(e, newValue) => {
-                                setUniversity(newValue ?? '');
-                            }}
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    label="University"
-                                    value={university}
-                                    required
-                                />
-                            )}
-                        />
-                        <Divider />
-                        <Button
-                            variant="contained"
-                            onClick={submitRegistration}
+                        Create
+                    </Button>
+                    {errorMsg !== '' ? (
+                        <Typography
+                            sx={{ color: 'red', textAlign: 'center' }}
+                            variant="p"
                         >
-                            Create
-                        </Button>
-                        {errorMsg !== '' ? (
-                            <Typography
-                                sx={{ color: 'red', textAlign: 'center' }}
-                                variant="p"
-                            >
-                                {errorMsg}
-                            </Typography>
-                        ) : null}
-                    </Stack>
-                    <Typography sx={{ mt: 2, textAlign: 'center' }}>
-                        Already have an account?{' '}
-                        <Link
-                            onClick={() => {
-                                setLoginModalOpen(true);
-                                setSignupModalOpen(false);
-                            }}
-                        >
-                            Log in
-                        </Link>
-                    </Typography>
-                </form>
+                            {errorMsg}
+                        </Typography>
+                    ) : null}
+                </Stack>
+                <Typography sx={{ mt: 2, textAlign: 'center' }}>
+                    Already have an account?{' '}
+                    <Link
+                        onClick={() => {
+                            setLoginModalOpen(true);
+                            setSignupModalOpen(false);
+                        }}
+                    >
+                        Log in
+                    </Link>
+                </Typography>
             </Box>
         </Modal>
     );
