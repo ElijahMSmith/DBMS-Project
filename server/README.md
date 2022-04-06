@@ -1,10 +1,10 @@
 TODOS:
 
 - [x] Authentication Routes
-- [ ] University Endpoints
-  - [ ] Create/Edit University
-  - [ ] Get University Information
-  - [ ] Get All Universities
+- [x] University Endpoints
+  - [x] Create/Edit University
+  - [x] Get University Information
+  - [x] Get All Universities
 - [ ] RSO Endpoints
   - [ ] Create/Edit RSO
   - [ ] GET all RSOs for a university
