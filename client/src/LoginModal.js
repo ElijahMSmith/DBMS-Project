@@ -40,8 +40,8 @@ const LoginModal = (props) => {
             .post('http://localhost:1433/auth/login', { username, password })
             .then((resp) => {
                 // Good
-                const { uid, username, email, unid, permLevel } = resp.data;
-                setUserData(new User(uid, username, email, unid, permLevel));
+                const { email, permLevel, uid, unid, username } = resp.data;
+                setUserData(new User(username, email, uid, unid, permLevel));
                 setErrorMsg('');
                 setSnackbar(true, 'success', 'Logged in successfully!');
                 setLoginModalOpen(false);
@@ -58,59 +58,59 @@ const LoginModal = (props) => {
 
     return (
         <Modal open={open} onClose={() => setLoginModalOpen(false)}>
-            <Box sx={style}>
-                <form onSubmit={(e) => e.preventDefault()}>
-                    <Typography
-                        variant="h4"
-                        sx={{ pb: 2, textAlign: 'center' }}
+            <Box
+                sx={style}
+                component="form"
+                autoComplete="off"
+                onSubmit={(e) => e.preventDefault()}
+            >
+                <Typography variant="h4" sx={{ pb: 2, textAlign: 'center' }}>
+                    Login
+                </Typography>
+                <Stack spacing={1}>
+                    <TextField
+                        required
+                        label="Username"
+                        variant="outlined"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
+                    <TextField
+                        required
+                        label="Password"
+                        type="password"
+                        variant="outlined"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <Divider />
+                    <Button
+                        variant="contained"
+                        type="submit"
+                        onClick={submitLogin}
                     >
-                        Login
-                    </Typography>
-                    <Stack spacing={1}>
-                        <TextField
-                            required
-                            label="Username"
-                            variant="outlined"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                        />
-                        <TextField
-                            required
-                            label="Password"
-                            type="password"
-                            variant="outlined"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                        <Divider />
-                        <Button
-                            variant="contained"
-                            type="submit"
-                            onClick={submitLogin}
+                        Log In
+                    </Button>
+                    {errorMsg !== '' ? (
+                        <Typography
+                            sx={{ color: 'red', textAlign: 'center' }}
+                            variant="p"
                         >
-                            Log In
-                        </Button>
-                        {errorMsg !== '' ? (
-                            <Typography
-                                sx={{ color: 'red', textAlign: 'center' }}
-                                variant="p"
-                            >
-                                {errorMsg}
-                            </Typography>
-                        ) : null}
-                    </Stack>
-                    <Typography sx={{ mt: 2, textAlign: 'center' }}>
-                        Don't have an account?{' '}
-                        <Link
-                            onClick={() => {
-                                setLoginModalOpen(false);
-                                setSignupModalOpen(true);
-                            }}
-                        >
-                            Sign up here
-                        </Link>
-                    </Typography>
-                </form>
+                            {errorMsg}
+                        </Typography>
+                    ) : null}
+                </Stack>
+                <Typography sx={{ mt: 2, textAlign: 'center' }}>
+                    Don't have an account?{' '}
+                    <Link
+                        onClick={() => {
+                            setLoginModalOpen(false);
+                            setSignupModalOpen(true);
+                        }}
+                    >
+                        Sign up here
+                    </Link>
+                </Typography>
             </Box>
         </Modal>
     );
