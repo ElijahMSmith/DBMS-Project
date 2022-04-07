@@ -1,14 +1,16 @@
 export default class RSO {
     rsoid;
+    uid;
+    unid;
+    name;
     desc;
     numMembers;
-    name;
-    approved;
-    constructor(rsoid, name, desc, numMembers, approved) {
+    constructor(rsoid, uid, unid, name, description, numMembers) {
         this.rsoid = rsoid;
+        this.uid = uid;
+        this.unid = unid;
         this.name = name;
-        this.desc = desc;
+        this.description = description;
         this.numMembers = numMembers;
-        this.approved = approved ?? false;
     }
 }

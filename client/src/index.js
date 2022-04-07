@@ -3,7 +3,9 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
 import Home from './pages/Home';
-import RSOs from './pages/RSOs';
+import RSOSearch from './pages/RSO-related/RSOSearch';
+import EditRSO from './pages/RSO-related/EditRSO';
+import ViewRSO from './pages/RSO-related/ViewRSO';
 import Universities from './pages/Universities';
 import MyEvents from './pages/MyEvents';
 import Account from './pages/Account';
@@ -35,7 +37,7 @@ const ContainerComponent = () => {
                     <Route
                         path="rsos"
                         element={
-                            <RSOs
+                            <RSOSearch
                                 userData={userData}
                                 setUserData={setUserData}
                             />
