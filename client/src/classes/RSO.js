@@ -2,6 +2,7 @@ export default class RSO {
     rsoid;
     uid;
     unid;
+    uname;
     name;
     desc;
     numMembers;

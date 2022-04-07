@@ -16,10 +16,7 @@ const Account = (props) => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [university, setUniversity] = useState(null);
-    const [RSOs, setRSOs] = useState([]);
-
     const [universitiesList, setUniversitiesList] = useState([]);
-    const [rsoList, setRSOList] = useState([]);
 
     const [snackbarMsg, setSnackbarMsg] = useState('');
     const [snackbarSeverity, setSnackbarSeverity] = useState('success');
@@ -76,8 +73,6 @@ const Account = (props) => {
                 console.error(err);
                 createSnackbar('Something went wrong.', 'error');
             });
-
-        // TODO - submit new list of joined RSOs
     };
 
     useEffect(() => {
@@ -172,6 +167,7 @@ const Account = (props) => {
 
             <Button
                 variant="contained"
+                type="submit"
                 onClick={submitEdits}
                 sx={{ width: 200 }}
             >
@@ -195,15 +191,6 @@ const Account = (props) => {
             </Snackbar>
         </Box>
     );
-
-    // Username
-    // Email
-    // Password
-    // RSOs (can add and remove)
-    // University (can change to another option)
-
-    // TODO: Create a route for updating a user's information
-    // TODO: Update route in signup modal to get universities list
 };
 
 export default Account;

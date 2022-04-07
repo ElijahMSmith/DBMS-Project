@@ -4,8 +4,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
 import Home from './pages/Home';
 import RSOSearch from './pages/RSO-related/RSOSearch';
-import EditRSO from './pages/RSO-related/EditRSO';
-import ViewRSO from './pages/RSO-related/ViewRSO';
 import Universities from './pages/Universities';
 import MyEvents from './pages/MyEvents';
 import Account from './pages/Account';
