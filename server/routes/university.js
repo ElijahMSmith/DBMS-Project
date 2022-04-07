@@ -70,6 +70,10 @@ router.get('/', async(req, res) => {
         const request = `SELECT * FROM Universities WHERE unid='${unid}'`
         const response = await pool.query(request);
 
+        // Respond with a 404 if no data found.
+        if(response.recordset.length <= 0)
+            return res.status(404).send({"error": "No University Found with that UNID"});
+
         // Return the result
         return res.status(200).send(response.recordset[0]);
     }).catch((error) => {

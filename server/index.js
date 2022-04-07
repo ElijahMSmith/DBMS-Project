@@ -14,11 +14,13 @@ app.use(
 // Import routes
 const authRoutes = require('./routes/authentication');
 const uniRoutes  = require('./routes/university');
+const rsoRoutes  = require('./routes/rso');
 
 // Middlewares
 app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/universities', uniRoutes);
+app.use('/rsos', rsoRoutes);
 
 sql.connect(config)
     .then(async (pool) => {

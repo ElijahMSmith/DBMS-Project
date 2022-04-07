@@ -5,11 +5,12 @@ TODOS:
   - [x] Create/Edit University
   - [x] Get University Information
   - [x] Get All Universities
-- [ ] RSO Endpoints
-  - [ ] Create/Edit RSO
-  - [ ] GET all RSOs for a university
-  - [ ] GET a specific RSO
-  - [ ] Join an RSO
+- [x] RSO Endpoints
+  - [x] Create/Edit RSO
+  - [x] GET all RSOs for a university
+  - [x] GET a specific RSO
+  - [x] Join an RSO
+  - [x] Leave an RSO
 - [ ] Event Endpoints
   - [ ] Create / Edit an Event
   - [ ] Delete Event
