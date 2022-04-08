@@ -5,15 +5,15 @@ import {
     Button,
     Typography,
     Box,
-    Autocomplete,
     Checkbox,
-    TextField,
     FormControlLabel,
     Grid,
     FormGroup,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import UniversityAutocomplete from '../../components/UniversityAutocomplete';
+import RSOmodal from './RSOmodal';
 
 const CREATE = 1;
 const EDIT = 2;
@@ -33,6 +33,8 @@ const RSOSearch = (props) => {
     const [showOwned, setShowOwned] = useState(false);
 
     const [modalOp, setModalOp] = useState(CLOSED);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [forceUpdate, toggleForceUpdate] = useState(false);
 
     useEffect(() => {
         // Get list of all universities
@@ -118,39 +120,23 @@ const RSOSearch = (props) => {
         }
     };
 
+    const updateRSO = (oldRSO, newRSO) => {
+        // TODO: find old RSO, make changes locally
+        // TODO: Submit edit to server
+    };
+
+    const deleteRSO = () => {
+        // TODO: delete on server, remove from list
+    };
+
     return (
         <Box sx={{ mt: 2, ml: 2 }}>
             <form onSubmit={(e) => e.preventDefault()}>
                 <div>
-                    <Autocomplete
+                    <UniversityAutocomplete
                         value={university}
-                        disablePortal
-                        options={allUniversities}
-                        getOptionLabel={(univ) => univ.name}
-                        onChange={(e, newValue) => {
-                            setUniversity(newValue ?? null);
-                        }}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label="University"
-                                error={!university}
-                            />
-                        )}
-                        isOptionEqualToValue={(univ1, univ2) => {
-                            return (
-                                univ1.name === univ2.name &&
-                                univ1.unid === univ2.unid
-                            );
-                        }}
-                        sx={{
-                            width: 300,
-                            display: 'inline-flex',
-                            msFlexDirection: 'column',
-                            WebkitFlexDirection: 'column',
-                            flexDirection: 'column',
-                            position: 'relative',
-                        }}
+                        setUniversity={setUniversity}
+                        allUniversities={allUniversities}
                     />
                     <Button
                         variant="contained"
@@ -160,12 +146,12 @@ const RSOSearch = (props) => {
                     >
                         Search
                     </Button>
-
                     <Button
                         variant="contained"
                         onClick={() => {
+                            setRSO(null);
                             setModalOp(CREATE);
-                            setRSO(props.rso);
+                            setModalOpen(true);
                         }}
                         sx={{ ml: 2, height: 56 }}
                     >
@@ -217,24 +203,48 @@ const RSOSearch = (props) => {
                                 rso={rso}
                                 userData={userData}
                                 setModalOp={setModalOp}
+                                setModalOpen={setModalOpen}
                                 setRSO={setRSO}
+                                toggleForceUpdate={toggleForceUpdate}
+                                forceUpdate={forceUpdate}
                             />
                         </Grid>
                     );
                 })}
             </Grid>
+            <RSOmodal
+                open={modalOpen}
+                mode={modalOp}
+                setModalOpen={setModalOpen}
+                rso={rso}
+                updateRSO={updateRSO}
+                deleteRSO={deleteRSO}
+            />
         </Box>
-
-        // TODO: Start working on RSOmodal based on input operation and RSO data
-        // TODO: Add modal to bottom of render tree
     );
 };
 
 const RSOCard = (props) => {
-    const { rsoid, unid, uname, name, description, numMembers, joined, owned } =
-        props.rso;
+    const {
+        rsoid,
+        unid,
+        uname,
+        name,
+        description,
+        numMembers,
+        joined,
+        owned,
+    } = props.rso;
 
-    const { setModalOp, setRSO, userData } = props;
+    const {
+        setModalOp,
+        setModalOpen,
+        setRSO,
+        userData,
+        toggleForceUpdate,
+        forceUpdate,
+        deleteRSO,
+    } = props;
 
     const joinRSO = () => {
         axios
@@ -248,6 +258,7 @@ const RSOCard = (props) => {
                     props.rso.joined = true;
                     // Force refresh
                     setRSO(props.rso);
+                    toggleForceUpdate(!forceUpdate);
                 } else {
                     console.error(
                         'POST join RSO returned status ' + resp.status
@@ -263,15 +274,18 @@ const RSOCard = (props) => {
     const leaveRSO = () => {
         axios
             .delete('http://localhost:1433/rsos/membership', {
-                rsoid,
-                uid: userData.uid,
+                data: {
+                    rsoid,
+                    uid: userData.uid,
+                },
             })
             .then((resp) => {
                 if (resp.status === 200) {
-                    console.log('Successfully joined RSO');
+                    console.log('Successfully left RSO');
                     props.rso.joined = false;
                     // Force refresh
                     setRSO(props.rso);
+                    toggleForceUpdate(!forceUpdate);
                 } else {
                     console.error(
                         'DELETE leave RSO returned status ' + resp.status
@@ -280,27 +294,9 @@ const RSOCard = (props) => {
                 }
             })
             .catch((err) => {
-                // TODO: Why is this returning 406?
                 console.error(err);
                 console.log(err.response.data);
             });
-        /*
-        Route: DELETE “/rsos/membership”
-        In (body/json):
-        {
-            “rsoid”: <string>,
-            “uid”: <string>
-        }
-        Out (json):
-        In case of error (response 500, 406):
-        {
-            “error”: <String, error message explaining what went wrong>
-        }
-        No error:
-        {
-            “message”: “Relationship Deleted Successfully”
-        }
-        */
     };
 
     return (
@@ -309,7 +305,7 @@ const RSOCard = (props) => {
                 width: 400,
                 height: 200,
                 outline: owned
-                    ? '2px solid orange'
+                    ? '2px solid #00bab4'
                     : joined
                     ? '2px solid green'
                     : '0px',
@@ -349,7 +345,7 @@ const RSOCard = (props) => {
                             size="small"
                             variant="outlined"
                             sx={{
-                                color: 'red',
+                                color: 'orange',
                                 mx: 1,
                             }}
                             onClick={leaveRSO}
@@ -380,11 +376,25 @@ const RSOCard = (props) => {
                                 color: 'purple',
                             }}
                             onClick={() => {
-                                setModalOp(EDIT);
                                 setRSO(props.rso);
+                                setModalOp(EDIT);
+                                setModalOpen(true);
                             }}
                         >
                             Edit
+                        </Button>
+                    ) : null}
+                    {owned ? (
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                                mx: 1,
+                                color: 'red',
+                            }}
+                            onClick={deleteRSO}
+                        >
+                            Delete
                         </Button>
                     ) : null}
                     <Button
@@ -394,8 +404,9 @@ const RSOCard = (props) => {
                             mx: 1,
                         }}
                         onClick={() => {
-                            setModalOp(VIEW);
                             setRSO(props.rso);
+                            setModalOp(VIEW);
+                            setModalOpen(true);
                         }}
                     >
                         View

@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react';
-import {
-    TextField,
-    Box,
-    Autocomplete,
-    Button,
-    Snackbar,
-    Alert,
-} from '@mui/material';
+import { TextField, Box, Button, Snackbar, Alert } from '@mui/material';
 import axios from 'axios';
 import User from '../classes/User';
+import UniversityAutocomplete from '../components/UniversityAutocomplete';
 
 const Account = (props) => {
     let { userData, setUserData } = props;
@@ -137,35 +131,10 @@ const Account = (props) => {
 
             <br />
 
-            <Autocomplete
+            <UniversityAutocomplete
                 value={university}
-                disablePortal
-                options={universitiesList}
-                getOptionLabel={(univ) => univ.name}
-                onChange={(e, newValue) => {
-                    setUniversity(newValue ?? null);
-                }}
-                renderInput={(params) => (
-                    <TextField
-                        {...params}
-                        label="University"
-                        error={!university}
-                    />
-                )}
-                isOptionEqualToValue={(univ1, univ2) => {
-                    return (
-                        univ1.name === univ2.name && univ1.unid === univ2.unid
-                    );
-                }}
-                sx={{
-                    width: 300,
-                    display: 'inline-flex',
-                    msFlexDirection: 'column',
-                    WebkitFlexDirection: 'column',
-                    flexDirection: 'column',
-                    position: 'relative',
-                    mb: 3,
-                }}
+                allUniversities={universitiesList}
+                setUniversity={setUniversity}
             />
 
             <br />

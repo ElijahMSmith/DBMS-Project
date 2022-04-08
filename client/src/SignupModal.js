@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-    Autocomplete,
     TextField,
     Button,
     Box,
@@ -12,6 +11,7 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import User from './classes/User';
+import UniversityAutocomplete from './components/UniversityAutocomplete';
 
 const style = {
     position: 'absolute',
@@ -37,8 +37,7 @@ const SignupModal = (props) => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [unid, setUnid] = useState('');
-    const [university, setUniversity] = useState('');
+    const [university, setUniversity] = useState(null);
     const [universitiesList, setUniversitiesList] = useState([]);
     const [errorMsg, setErrorMsg] = useState('');
 
@@ -66,7 +65,7 @@ const SignupModal = (props) => {
     }, [open]);
 
     const submitRegistration = () => {
-        if (username === '' || email === '' || password === '' || unid === '') {
+        if (username === '' || email === '' || password === '' || !university) {
             setErrorMsg('One or more fields are empty.');
             return;
         }
@@ -76,7 +75,7 @@ const SignupModal = (props) => {
                 email,
                 username,
                 password,
-                unid,
+                unid: university.unid,
             })
             .then((resp) => {
                 // Good
@@ -133,24 +132,10 @@ const SignupModal = (props) => {
                         onChange={(e) => setPassword(e.target.value)}
                     />
 
-                    <Autocomplete
-                        value={unid !== '' ? { name: university, unid } : null}
-                        disablePortal
-                        options={universitiesList}
-                        getOptionLabel={(univ) => univ.name}
-                        onChange={(e, newValue) => {
-                            setUniversity(newValue ? newValue.name : '');
-                            setUnid(newValue ? newValue.unid : '');
-                        }}
-                        renderInput={(params) => (
-                            <TextField {...params} label="University" />
-                        )}
-                        isOptionEqualToValue={(univ1, univ2) => {
-                            return (
-                                univ1.name === univ2.name &&
-                                univ1.unid === univ2.unid
-                            );
-                        }}
+                    <UniversityAutocomplete
+                        value={university}
+                        allUniversities={universitiesList}
+                        setUniversity={setUniversity}
                     />
 
                     <Divider />

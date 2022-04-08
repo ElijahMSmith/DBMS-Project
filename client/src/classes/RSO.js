@@ -4,7 +4,7 @@ export default class RSO {
     unid;
     uname;
     name;
-    desc;
+    description;
     numMembers;
     constructor(rsoid, uid, unid, name, description, numMembers) {
         this.rsoid = rsoid;
