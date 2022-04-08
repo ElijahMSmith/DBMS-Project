@@ -18,12 +18,12 @@ import axios from 'axios';
 const CREATE = 1;
 const EDIT = 2;
 const VIEW = 3;
+const CLOSED = 4;
 
 const RSOSearch = (props) => {
     const { userData, setUserData } = props;
 
     const [allRSOs, setAllRSOs] = useState([]);
-    const [myRSOs, setMyRSOs] = useState([]);
     const [allUniversities, setAllUniversities] = useState([]);
 
     const [rso, setRSO] = useState(null);
@@ -32,8 +32,7 @@ const RSOSearch = (props) => {
     const [showJoined, setShowJoined] = useState(false);
     const [showOwned, setShowOwned] = useState(false);
 
-    const [modalOpen, setModalOpen] = useState(false);
-    const [modalOp, setModalOp] = useState(VIEW);
+    const [modalOp, setModalOp] = useState(CLOSED);
 
     useEffect(() => {
         // Get list of all universities
@@ -105,7 +104,6 @@ const RSOSearch = (props) => {
 
                     rso.owned = rso.uid === userData.uid;
                 }
-                console.log(resp.data.rsos);
                 setAllRSOs(resp.data.rsos);
                 console.log('Successfully retrieved RSOs');
             } else {
@@ -118,10 +116,6 @@ const RSOSearch = (props) => {
         } catch (err) {
             console.error(err);
         }
-    };
-
-    const createRSO = () => {
-        // TODO - open modal in CREATE mode
     };
 
     return (
@@ -169,7 +163,10 @@ const RSOSearch = (props) => {
 
                     <Button
                         variant="contained"
-                        onClick={createRSO}
+                        onClick={() => {
+                            setModalOp(CREATE);
+                            setRSO(props.rso);
+                        }}
                         sx={{ ml: 2, height: 56 }}
                     >
                         Create New RSO
@@ -187,7 +184,7 @@ const RSOSearch = (props) => {
                         }
                         label="Show Only Joined"
                     />
-                    {userData.permLevel <= 1 ? (
+                    {userData && userData.permLevel > 1 ? (
                         <FormControlLabel
                             control={
                                 <Checkbox
@@ -202,43 +199,122 @@ const RSOSearch = (props) => {
                     ) : null}
                 </FormGroup>
             </form>
-            <Grid container spacing={2} sx={{ mt: 2 }}>
+            <Grid container spacing={2}>
                 {allRSOs.map((rso) => {
                     if (showOwned && !rso.owned) return null;
                     if (showJoined && !rso.joined) return null;
                     return (
-                        <Grid key={rso.rsoid} item md={3}>
-                            <RSOCard rso={rso} />
+                        <Grid
+                            key={rso.rsoid}
+                            item
+                            xs={12}
+                            md={6}
+                            lg={4}
+                            xl={3}
+                            sx={{ my: 2 }}
+                        >
+                            <RSOCard
+                                rso={rso}
+                                userData={userData}
+                                setModalOp={setModalOp}
+                                setRSO={setRSO}
+                            />
                         </Grid>
                     );
                 })}
             </Grid>
         </Box>
 
-        // TODO: insert an RSO directly for newuser so I can test ownership
-        // TODO: Add card outline for owned RSOs
-        // TODO: Fix grid of cards
-        // TODO: Fix buttons on bottom of card to only give appropriate options
-        // TODO: Make the buttons work
+        // TODO: Start working on RSOmodal based on input operation and RSO data
+        // TODO: Add modal to bottom of render tree
     );
 };
 
 const RSOCard = (props) => {
-    // const dummyRSO = {
-    //     rsoid: 'rsoid-asdfasdfasdfasdfasdfaads',
-    //     uid: 'uid-hansdklhfadlsnjflasndklads',
-    //     unid: 'unid-asdfaergsklgjldfjladjllad',
-    //     name: 'Knight Hacks',
-    //     description:
-    //         "This is a really long description about Knight Hacks. It's a really fun club that everyone should join, and it quite frankly rocks! I'm currently the vice president, but that might be changing shortly. For now I'm going to maximize the number of characters in this long paragraph and get to 300-ish.",
-    //     numMembers: 300,
-    // };
-
-    const { unid, uname, name, description, numMembers, joined, owned } =
+    const { rsoid, unid, uname, name, description, numMembers, joined, owned } =
         props.rso;
 
+    const { setModalOp, setRSO, userData } = props;
+
+    const joinRSO = () => {
+        axios
+            .post('http://localhost:1433/rsos/membership', {
+                rsoid,
+                uid: userData.uid,
+            })
+            .then((resp) => {
+                if (resp.status === 200) {
+                    console.log('Successfully joined RSO');
+                    props.rso.joined = true;
+                    // Force refresh
+                    setRSO(props.rso);
+                } else {
+                    console.error(
+                        'POST join RSO returned status ' + resp.status
+                    );
+                    console.log(resp.data);
+                }
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    };
+
+    const leaveRSO = () => {
+        axios
+            .delete('http://localhost:1433/rsos/membership', {
+                rsoid,
+                uid: userData.uid,
+            })
+            .then((resp) => {
+                if (resp.status === 200) {
+                    console.log('Successfully joined RSO');
+                    props.rso.joined = false;
+                    // Force refresh
+                    setRSO(props.rso);
+                } else {
+                    console.error(
+                        'DELETE leave RSO returned status ' + resp.status
+                    );
+                    console.log(resp.data);
+                }
+            })
+            .catch((err) => {
+                // TODO: Why is this returning 406?
+                console.error(err);
+                console.log(err.response.data);
+            });
+        /*
+        Route: DELETE “/rsos/membership”
+        In (body/json):
+        {
+            “rsoid”: <string>,
+            “uid”: <string>
+        }
+        Out (json):
+        In case of error (response 500, 406):
+        {
+            “error”: <String, error message explaining what went wrong>
+        }
+        No error:
+        {
+            “message”: “Relationship Deleted Successfully”
+        }
+        */
+    };
+
     return (
-        <Card sx={{ width: 400, height: 200 }}>
+        <Card
+            sx={{
+                width: 400,
+                height: 200,
+                outline: owned
+                    ? '2px solid orange'
+                    : joined
+                    ? '2px solid green'
+                    : '0px',
+            }}
+        >
             <CardContent sx={{ pb: 0 }}>
                 <Typography
                     variant="h4"
@@ -262,14 +338,68 @@ const RSOCard = (props) => {
                 >
                     {description}
                 </Typography>
-                <Typography sx={{ textAlign: 'center' }}>
+                <Typography sx={{ textAlign: 'center', mt: 1 }}>
                     {numMembers} Members
                 </Typography>
             </CardContent>
             <CardActions>
                 <Box sx={{ textAlign: 'center', width: '100%' }}>
-                    <Button size="small">Join</Button>
-                    <Button size="small">View</Button>
+                    {joined ? (
+                        <Button
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                                color: 'red',
+                                mx: 1,
+                            }}
+                            onClick={leaveRSO}
+                            disabled={owned}
+                        >
+                            Leave
+                        </Button>
+                    ) : null}
+                    {!joined && userData && userData.unid === unid ? (
+                        <Button
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                                color: 'green',
+                                mx: 1,
+                            }}
+                            onClick={joinRSO}
+                        >
+                            Join
+                        </Button>
+                    ) : null}
+                    {owned ? (
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                                mx: 1,
+                                color: 'purple',
+                            }}
+                            onClick={() => {
+                                setModalOp(EDIT);
+                                setRSO(props.rso);
+                            }}
+                        >
+                            Edit
+                        </Button>
+                    ) : null}
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                            mx: 1,
+                        }}
+                        onClick={() => {
+                            setModalOp(VIEW);
+                            setRSO(props.rso);
+                        }}
+                    >
+                        View
+                    </Button>
                 </Box>
             </CardActions>
         </Card>

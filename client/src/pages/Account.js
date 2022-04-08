@@ -111,7 +111,12 @@ const Account = (props) => {
     }, [userData]);
 
     return (
-        <Box component="form" autoComplete="off" sx={{ textAlign: 'center' }}>
+        <Box
+            component="form"
+            autoComplete="off"
+            onSubmit={(e) => e.preventDefault()}
+            sx={{ textAlign: 'center' }}
+        >
             <TextField
                 label="Username"
                 value={username}
