@@ -20,6 +20,18 @@ const EDIT = 2;
 const VIEW = 3;
 const CLOSED = 4;
 
+const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+};
+
 const RSOSearch = (props) => {
     const { userData, setUserData } = props;
 
@@ -67,19 +79,22 @@ const RSOSearch = (props) => {
         try {
             const joinedList = [];
 
-            // Get RSOs specific to that user
-            let resp = await axios.get(
-                `http://localhost:1433/rsos/?uid=${userData.uid}`
-            );
-
-            if (resp.status === 200) {
-                for (let rso of resp.data.rsos) joinedList.push(rso.rsoid);
-                console.log('Successfully retrieved joined RSOs');
-            } else {
-                console.error(
-                    'GET all joined RSOs returned code ' + resp.status
+            let resp;
+            if (userData) {
+                // Get RSOs specific to that user
+                resp = await axios.get(
+                    `http://localhost:1433/rsos/?uid=${userData.uid}`
                 );
-                console.log(resp.data);
+
+                if (resp.status === 200) {
+                    for (let rso of resp.data.rsos) joinedList.push(rso.rsoid);
+                    console.log('Successfully retrieved joined RSOs');
+                } else {
+                    console.error(
+                        'GET all joined RSOs returned code ' + resp.status
+                    );
+                    console.log(resp.data);
+                }
             }
 
             // Get all RSOs at that university
@@ -104,7 +119,7 @@ const RSOSearch = (props) => {
                         }
                     }
 
-                    rso.owned = rso.uid === userData.uid;
+                    if (userData) rso.owned = rso.uid === userData.uid;
                 }
                 setAllRSOs(resp.data.rsos);
                 console.log('Successfully retrieved RSOs');
@@ -123,10 +138,6 @@ const RSOSearch = (props) => {
     const updateRSO = (oldRSO, newRSO) => {
         // TODO: find old RSO, make changes locally
         // TODO: Submit edit to server
-    };
-
-    const deleteRSO = () => {
-        // TODO: delete on server, remove from list
     };
 
     return (
@@ -218,23 +229,14 @@ const RSOSearch = (props) => {
                 setModalOpen={setModalOpen}
                 rso={rso}
                 updateRSO={updateRSO}
-                deleteRSO={deleteRSO}
             />
         </Box>
     );
 };
 
 const RSOCard = (props) => {
-    const {
-        rsoid,
-        unid,
-        uname,
-        name,
-        description,
-        numMembers,
-        joined,
-        owned,
-    } = props.rso;
+    const { rsoid, unid, uname, name, description, numMembers, joined, owned } =
+        props.rso;
 
     const {
         setModalOp,
@@ -305,7 +307,7 @@ const RSOCard = (props) => {
                 width: 400,
                 height: 200,
                 outline: owned
-                    ? '2px solid #00bab4'
+                    ? '2px solid #000094'
                     : joined
                     ? '2px solid green'
                     : '0px',
@@ -382,19 +384,6 @@ const RSOCard = (props) => {
                             }}
                         >
                             Edit
-                        </Button>
-                    ) : null}
-                    {owned ? (
-                        <Button
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                                mx: 1,
-                                color: 'red',
-                            }}
-                            onClick={deleteRSO}
-                        >
-                            Delete
                         </Button>
                     ) : null}
                     <Button

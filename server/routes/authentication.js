@@ -79,7 +79,7 @@ router.post('/login', async (req, res) => {
         });
 });
 
-// Update user information
+// Update user information from the account page
 router.post('/update', async (req, res) => {
     const { uid, username, email, unid, permLevel } = req.body;
 
@@ -113,6 +113,28 @@ router.post('/update', async (req, res) => {
         .catch((err) => {
             return res.status(500).send({ error: err });
         });
+});
+
+// Get the username and email of a user by their uid
+router.get('/find', async (req, res) => {
+    // Extract the uid of the user from the query
+    const { uid } = req.query;
+
+    return sql.connect(config).then(async (pool) => {
+        if (uid) {
+            // Search for the user with a matching uid and return the username and email
+            const query = `SELECT u.username, u.email FROM Users u WHERE uid='${uid}'`;
+            const result = await pool.query(query);
+
+            // Return the specific record found
+            return res.status(200).send(result.recordset[0]);
+        } else {
+            // 500 if no uid is provided
+            return res
+                .status(500)
+                .send({ error: 'No uid provided in the request query.' });
+        }
+    });
 });
 
 module.exports = router;
