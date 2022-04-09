@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { TextField, Box, Button, Snackbar, Alert } from '@mui/material';
+import { TextField, Box, Button, Snackbar, Alert, Stack } from '@mui/material';
 import axios from 'axios';
 import User from '../classes/User';
 import UniversityAutocomplete from '../components/UniversityAutocomplete';
@@ -109,44 +109,45 @@ const Account = (props) => {
             component="form"
             autoComplete="off"
             onSubmit={(e) => e.preventDefault()}
-            sx={{ textAlign: 'center' }}
         >
-            <TextField
-                label="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                error={!username}
-                sx={{ width: 300, mb: 3, mt: 10 }}
-            />
-
-            <br />
-
-            <TextField
-                label="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                error={!email}
-                sx={{ width: 300, mb: 3 }}
-            />
-
-            <br />
-
-            <UniversityAutocomplete
-                value={university}
-                allUniversities={universitiesList}
-                setUniversity={setUniversity}
-            />
-
-            <br />
-
-            <Button
-                variant="contained"
-                type="submit"
-                onClick={submitEdits}
-                sx={{ width: 200 }}
+            <Stack
+                spacing={4}
+                sx={{
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}
             >
-                Submit Changes
-            </Button>
+                <TextField
+                    label="Username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    error={!username}
+                    sx={{ width: 300, mb: 3, mt: 10 }}
+                />
+
+                <TextField
+                    label="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    error={!email}
+                    sx={{ width: 300, mb: 3 }}
+                />
+
+                <UniversityAutocomplete
+                    value={university}
+                    allUniversities={universitiesList}
+                    setUniversity={setUniversity}
+                />
+
+                <Button
+                    variant="contained"
+                    type="submit"
+                    onClick={submitEdits}
+                    sx={{ width: 100 }}
+                >
+                    Submit Changes
+                </Button>
+            </Stack>
 
             <Snackbar
                 open={snackbarOpen}

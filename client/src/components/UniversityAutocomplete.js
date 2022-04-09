@@ -1,11 +1,18 @@
 import { Autocomplete, TextField } from '@mui/material';
 
 const UniversityAutocomplete = (props) => {
-    const { allUniversities, value, setUniversity, width = 300 } = props;
+    const {
+        allUniversities,
+        value,
+        setUniversity,
+        width = 300,
+        disabled = false,
+    } = props;
 
     return (
         <Autocomplete
             value={value}
+            disabled={disabled}
             disablePortal
             options={allUniversities}
             getOptionLabel={(univ) => univ.name}

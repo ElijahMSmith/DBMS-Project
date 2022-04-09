@@ -48,7 +48,6 @@ const RSOSearch = (props) => {
     const [modalOpen, setModalOpen] = useState(false);
     const [forceUpdate, toggleForceUpdate] = useState(false);
 
-
     useEffect(() => {
         // Get list of all universities
         axios
@@ -153,17 +152,19 @@ const RSOSearch = (props) => {
                     >
                         Search
                     </Button>
-                    <Button
-                        variant="contained"
-                        onClick={() => {
-                            setRSO(null);
-                            setModalOp(CREATE);
-                            setModalOpen(true);
-                        }}
-                        sx={{ ml: 2, height: 56 }}
-                    >
-                        Create New RSO
-                    </Button>
+                    {userData ? (
+                        <Button
+                            variant="contained"
+                            onClick={() => {
+                                setRSO(null);
+                                setModalOp(CREATE);
+                                setModalOpen(true);
+                            }}
+                            sx={{ ml: 2, height: 56 }}
+                        >
+                            Create New RSO
+                        </Button>
+                    ) : null}
                 </div>
                 <FormGroup sx={{ display: 'inline' }}>
                     <FormControlLabel
@@ -227,14 +228,23 @@ const RSOSearch = (props) => {
                 allUniversities={allUniversities}
                 setSnackbar={setSnackbar}
                 refreshSearch={handleSearch}
+                userData={userData}
             />
         </Box>
     );
 };
 
 const RSOCard = (props) => {
-    const { rsoid, unid, uname, name, description, numMembers, joined, owned } =
-        props.rso;
+    const {
+        rsoid,
+        unid,
+        uname,
+        name,
+        description,
+        numMembers,
+        joined,
+        owned,
+    } = props.rso;
 
     const {
         setModalOp,
@@ -243,10 +253,10 @@ const RSOCard = (props) => {
         userData,
         toggleForceUpdate,
         forceUpdate,
-        deleteRSO,
     } = props;
 
     const joinRSO = () => {
+        console.log('join');
         axios
             .post('http://localhost:1433/rsos/membership', {
                 rsoid,
@@ -256,6 +266,7 @@ const RSOCard = (props) => {
                 if (resp.status === 200) {
                     console.log('Successfully joined RSO');
                     props.rso.joined = true;
+                    props.rso.numMembers++;
                     // Force refresh
                     setRSO(props.rso);
                     toggleForceUpdate(!forceUpdate);
@@ -283,6 +294,7 @@ const RSOCard = (props) => {
                 if (resp.status === 200) {
                     console.log('Successfully left RSO');
                     props.rso.joined = false;
+                    props.rso.numMembers--;
                     // Force refresh
                     setRSO(props.rso);
                     toggleForceUpdate(!forceUpdate);

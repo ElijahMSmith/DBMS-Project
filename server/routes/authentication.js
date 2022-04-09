@@ -32,7 +32,8 @@ router.post('/register', async (req, res) => {
             // Something wrong happened!
             if (result.rowsAffected[0] !== 1)
                 return res.status(500).send({
-                    error: 'An unknown internal server error occurred during account creation',
+                    error:
+                        'An unknown internal server error occurred during account creation',
                 });
 
             // Return the newly-created user object
@@ -104,7 +105,8 @@ router.post('/update', async (req, res) => {
                 const result = await pool.query(request);
                 if (result.rowsAffected <= 0)
                     return res.status(406).send({
-                        error: 'No Changes Made. The User ID or other inputs were invalid.',
+                        error:
+                            'No Changes Made. The User ID or other inputs were invalid.',
                     });
 
                 return res.status(200).send();
@@ -118,24 +120,42 @@ router.post('/update', async (req, res) => {
 // Get a user's account by either their uid or email
 router.get('/find', async (req, res) => {
     // Extract the uid of the user from the query
-    const { uid, email } = req.query;
+    const { uid, email, emailList } = req.query;
 
-    if (!uid && !email) {
-        // 500 if neither is provided
-        return res
-            .status(500)
-            .send({ error: 'No uid provided in the request query.' });
+    if (!uid && !email && !emailList) {
+        // 500 if nothing is provided
+        return res.status(500).send({
+            error:
+                'No uid, email, or email list provided in the request query.',
+        });
     }
 
     return sql.connect(config).then(async (pool) => {
-        // Search for the user with matching credentials
-        let query = uid
-            ? `SELECT * FROM Users WHERE uid='${uid}'`
-            : `SELECT * FROM Users WHERE email='${email}'`;
-        const result = await pool.query(query);
+        if (emailList) {
+            const emailArray = JSON.parse(emailList);
+            const users = [];
+            for (let email of emailArray) {
+                let query = `SELECT * FROM Users WHERE email='${email}'`;
+                const result = await pool.query(query);
 
-        // Return the specific record found
-        return res.status(200).send(result.recordset[0]);
+                // Only return the uid for safety concerns
+                if (result.recordset.length > 0)
+                    users.push(result.recordset[0].uid);
+            }
+
+            return res.status(200).send({ users });
+        } else {
+            // Get one user by either uid or email, whichever is provided
+            let query = uid
+                ? `SELECT * FROM Users WHERE uid='${uid}'`
+                : `SELECT * FROM Users WHERE email='${email}'`;
+            const result = await pool.query(query);
+
+            // Return the specific record found, if any
+            if (result.recordset.length > 0)
+                return res.status(200).send(result.recordset[0]);
+            else return res.status(404).set({ error: 'User not found.' });
+        }
     });
 });
 

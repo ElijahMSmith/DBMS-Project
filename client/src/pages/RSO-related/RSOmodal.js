@@ -21,7 +21,7 @@ const style = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 1000,
+    width: 750,
     bgcolor: 'background.paper',
     border: '2px solid #000',
     boxShadow: 24,
@@ -37,6 +37,7 @@ const RSOmodal = (props) => {
         allUniversities,
         setSnackbar,
         refreshSearch,
+        userData,
     } = props;
 
     // Fixed fields, not editable by user
@@ -77,7 +78,13 @@ const RSOmodal = (props) => {
     };
 
     const buildNewRSO = () => {
-        if (!university || !name || !description || numMembers === 0) return;
+        if (
+            !university ||
+            name === '' ||
+            description === '' ||
+            memberEmails === ''
+        )
+            return;
 
         const newRSO = {
             rsoid: rsoid.replace(/'/g, "''"),
@@ -96,20 +103,98 @@ const RSOmodal = (props) => {
                 })
                 .catch((err) => handleError(err));
         } else if (mode === CREATE) {
-            // TODOS
-            /*
-            - Change numMembers of RSO every time a user joins and leaves, dynamic counter rather than static
-            - Creating a new RSO has a multiline area for adding emails of registered users to join
-                - Verify there is an account for each email
-                - Automatically join all the users attributed to those emails
+            // Parse member emails into a list
+            const emailList = memberEmails.split('\n');
 
-            Need to decide now whether to make the numMembers responsive to join/leaves instead of fixed number or not
-            IDK what the grade difference might be one way or the other, hopefully none
+            // Must be at least 4 other members to create
+            if (emailList.length < 4) {
+                setSnackbar(
+                    true,
+                    'error',
+                    'At least four other members are required for a new RSO!'
+                );
+                return;
+            }
 
-            In either case we need to validate each user exists
-            If we are doing it dynamically, remove it from the body of any route requiring it
-            */
-        } // Not applicable for viewing
+            // Test that all emails are from the same domain
+            const domain = userData.email.split('@')[1];
+            for (let em of emailList) {
+                if (domain !== em.split('@')[1]) {
+                    setSnackbar(
+                        true,
+                        'error',
+                        'All member emails must be from the same school domain!'
+                    );
+                    return;
+                }
+            }
+
+            // Verify there are user accounts with this email
+            axios
+                .get(
+                    `http://localhost:1433/auth/find/?emailList=${JSON.stringify(
+                        emailList
+                    )}`
+                )
+                .then((res) => {
+                    const uidUserList = res.data.users;
+
+                    if (uidUserList.length !== emailList.length) {
+                        setSnackbar(
+                            true,
+                            'error',
+                            'One or more emails were not attached to a registered user!'
+                        );
+                        return;
+                    }
+
+                    // Post the new RSO with 0 numMembers
+                    axios
+                        .post('http://localhost:1433/rsos/', {
+                            uid: userData.uid,
+                            unid: university.unid,
+                            name,
+                            description,
+                            numMembers: 0,
+                        })
+                        .then((res) => {
+                            console.log('returned', res.data);
+                            const newid = res.data.rsoid;
+
+                            setSnackbar(
+                                true,
+                                'success',
+                                'RSO successfully created!'
+                            );
+
+                            const uidList = [userData.uid];
+
+                            for (let iuser of uidUserList) uidList.push(iuser);
+
+                            axios
+                                .post('http://localhost:1433/rsos/membership', {
+                                    uidList,
+                                    rsoid: newid,
+                                })
+                                .then((res) => {
+                                    console.log(
+                                        'Successfully joined all users to the RSO'
+                                    );
+                                    setModalOpen(false);
+                                    refreshSearch();
+                                })
+                                .catch((err) => {
+                                    handleError(err);
+                                });
+                        })
+                        .catch((error) => {
+                            if (error.response && error.response.data)
+                                setSnackbar(true, 'error', error.response.data);
+                            else handleError(error);
+                        });
+                });
+        }
+        // Not applicable for viewing
 
         refreshSearch();
     };
@@ -142,6 +227,13 @@ const RSOmodal = (props) => {
         setDescription(rso ? rso.description : '');
         setNumMembers(rso ? rso.numMembers : 0);
         setUniversity(rso ? { name: rso.uname, unid: rso.unid } : null);
+        setMemberEmails('');
+        if (!rso && userData) {
+            for (let uni of allUniversities) {
+                if (uni.unid === userData.unid)
+                    setUniversity({ name: uni.name, unid: uni.unid });
+            }
+        }
         getOwner();
         getFirstPicture();
     }, [open]);
@@ -196,44 +288,22 @@ const RSOmodal = (props) => {
                     autoComplete="off"
                     onSubmit={(e) => e.preventDefault()}
                 >
-                    <Stack spacing={4}>
+                    <Stack spacing={3}>
                         <Typography variant="h4" sx={{ textAlign: 'center' }}>
                             {mode === EDIT ? 'Edit' : 'Create New'} RSO
                         </Typography>
-                        <Box>
-                            <TextField
-                                required
-                                label="RSO Name"
-                                variant="outlined"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                inputProps={{ maxLength: 40 }}
-                                sx={{ width: '72.5%', mr: '2.5%' }}
-                                helperText={`${name.length}/40`}
-                                error={name.length === 0}
-                            />
 
-                            <TextField
-                                required
-                                label="Number of Members"
-                                variant="outlined"
-                                value={numMembers}
-                                onChange={(e) => {
-                                    if (
-                                        e.target.value >= 0 &&
-                                        e.target.value <= 999999
-                                    )
-                                        setNumMembers(e.target.value);
-                                }}
-                                inputProps={{
-                                    maxLength: 6,
-                                    type: 'number',
-                                }}
-                                sx={{ width: '25%' }}
-                                helperText={`${String(numMembers).length}/6`}
-                                error={numMembers <= 0 || numMembers % 1 !== 0}
-                            />
-                        </Box>
+                        <TextField
+                            required
+                            label="RSO Name"
+                            variant="outlined"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            inputProps={{ maxLength: 40 }}
+                            sx={{ width: '100%' }}
+                            helperText={`${name.length}/40`}
+                            error={name.length === 0}
+                        />
 
                         <TextField
                             required
@@ -256,18 +326,18 @@ const RSOmodal = (props) => {
                             setUniversity={setUniversity}
                             allUniversities={allUniversities}
                             width="100%"
+                            disabled
                         />
 
                         {mode === CREATE ? (
                             <TextField
                                 required
-                                label="Member Emails (One Per Line)"
+                                label="Member Emails (One Per Line - 4 minimum required of the same email domain)"
                                 variant="outlined"
                                 value={memberEmails}
-                                onChange={(e) => {
-                                    setMemberEmails(e.target.value);
-                                    console.log(e.target.value);
-                                }}
+                                onChange={(e) =>
+                                    setMemberEmails(e.target.value)
+                                }
                                 multiline
                                 rows={3}
                                 helperText="Each email must be a registered user on this system"
@@ -300,8 +370,6 @@ const RSOmodal = (props) => {
             )}
         </Modal>
     );
-
-    // TODO: call updateRSO with oldRSO (null if create) and newRSO (buildRSO)
 };
 
 export default RSOmodal;
