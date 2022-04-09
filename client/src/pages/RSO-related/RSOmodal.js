@@ -78,11 +78,12 @@ const RSOmodal = (props) => {
     };
 
     const buildNewRSO = () => {
+        console.log({ university, name, description, memberEmails });
         if (
             !university ||
             name === '' ||
             description === '' ||
-            memberEmails === ''
+            (mode === CREATE && memberEmails === '')
         )
             return;
 
@@ -94,6 +95,8 @@ const RSOmodal = (props) => {
             description: description.replace(/'/g, "''"),
             numMembers,
         };
+
+        console.log('Mode: ' + mode);
 
         if (mode === EDIT) {
             axios
@@ -161,15 +164,10 @@ const RSOmodal = (props) => {
                             console.log('returned', res.data);
                             const newid = res.data.rsoid;
 
-                            setSnackbar(
-                                true,
-                                'success',
-                                'RSO successfully created!'
-                            );
-
                             const uidList = [userData.uid];
-
                             for (let iuser of uidUserList) uidList.push(iuser);
+
+                            console.log(uidList);
 
                             axios
                                 .post('http://localhost:1433/rsos/membership', {
@@ -177,10 +175,12 @@ const RSOmodal = (props) => {
                                     rsoid: newid,
                                 })
                                 .then((res) => {
-                                    console.log(
-                                        'Successfully joined all users to the RSO'
-                                    );
                                     setModalOpen(false);
+                                    setSnackbar(
+                                        true,
+                                        'success',
+                                        'RSO successfully created!'
+                                    );
                                     refreshSearch();
                                 })
                                 .catch((err) => {

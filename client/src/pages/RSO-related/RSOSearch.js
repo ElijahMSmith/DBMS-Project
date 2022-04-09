@@ -256,7 +256,6 @@ const RSOCard = (props) => {
     } = props;
 
     const joinRSO = () => {
-        console.log('join');
         axios
             .post('http://localhost:1433/rsos/membership', {
                 rsoid,

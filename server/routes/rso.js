@@ -28,7 +28,6 @@ router.post('/', async (req, res) => {
                         .status(400)
                         .send('That RSO name is already in use!');
 
-                console.log(numMembers);
                 // Build our query
                 query = `INSERT INTO RSOs VALUES
             ('${rsoid}', '${uid}', '${unid}', '${name}', '${description}', '${numMembers}')`;
@@ -111,12 +110,10 @@ router.get('/', async (req, res) => {
 router.post('/membership', async (req, res) => {
     // POST - Adjust a user's membership for a given RSO, or several users at once for a new RSO
     // PRECONDITION - if uidList is provided, this is for creating a new RSO
-    // And it is guaranteed that they aren't already in the RSO
+    // And as such, it is guaranteed that they aren't already in the RSO
     const { uid, rsoid, uidList = [] } = req.body;
 
     if (uid) uidList.push(uid);
-
-    console.log(uidList);
 
     // Connect, check to see if the relationship exists, if so, do nothing.
     // If it doesn't, post it.
@@ -135,44 +132,16 @@ router.post('/membership', async (req, res) => {
                             'A relationship between that and RSO already exists',
                     });
 
-                console.log('Test 1: ' + result.recordset[0]);
-
                 // If there isn't, we need to create it
                 query = `INSERT INTO MemberOf VALUES ('${rsoid}', '${iuid}')`;
                 result = await pool.query(query);
 
                 // Check that a change was made
-                if (result.rowsAffected.length > 0) {
-                    // GET numMembers from the RSO, add one, update it
-                    query = `SELECT r.numMembers from RSOs r WHERE rsoid='${rsoid}'`;
-                    result = await pool.query(query);
-
-                    if (result.recordset.length > 0) {
-                        console.log('Test 2: ' + result.recordset[0]);
-                        const newNumMembers =
-                            result.recordset[0].numMembers + 1;
-                        console.log(
-                            'numMembers ' +
-                                (newNumMembers - 1) +
-                                ' -> ' +
-                                newNumMembers
-                        );
-                        query = `UPDATE RSOs SET numMembers='${newNumMembers}' WHERE rsoid='${rsoid}'`;
-                        result = await pool.query(query);
-
-                        if (result.rowsAffected === 0)
-                            return res.status(500).send({
-                                error:
-                                    'An unknown internal server error occurred.',
-                            });
-                    } else {
-                        return res.status(406).send({
-                            error: 'Could not find RSO by rsoid ' + rsoid,
-                        });
-                    }
-                }
+                if (result.rowsAffected.length <= 0)
+                    return res.status(500).send({
+                        error: `Internal server error occurred, couldn't insert relationship between ${rsoid} and ${iuid}`,
+                    });
             }
-
             return res.status(200).send('Membership added');
         })
         .catch((err) => {
@@ -192,40 +161,19 @@ router.delete('/membership', async (req, res) => {
             let query = `SELECT * FROM MemberOf WHERE rsoid='${rsoid}' AND uid='${uid}'`;
             let result = await pool.query(query);
 
-            // If there is already a relationship... do nothing
+            // If there is not a relationship... do nothing
             if (result.recordset.length <= 0)
                 return res.status(406).send({
                     error:
                         'A relationship between that student and RSO does not exist',
                 });
 
-            // If there isn't, we need to create it
+            // If there is, then we need to delete it
             query = `DELETE FROM MemberOf WHERE rsoid='${rsoid}' AND uid='${uid}'`;
             result = await pool.query(query);
 
             // Check that a change was made
-            if (result.rowsAffected > 0) {
-                // GET numMembers from the RSO, add one, update it
-                query = `SELECT R.numMembers from RSOs r WHERE rsoid='${rsoid}'`;
-                result = await pool.query(query);
-
-                if (result.recordset.length > 0) {
-                    const newNumMembers = result.recordset[0].numMembers - 1;
-                    query = `UPDATE RSOs SET numMembers='${newNumMembers}' WHERE rsoid='${rsoid}'`;
-                    result = await pool.query(query);
-
-                    if (result.rowsAffected > 0)
-                        return res.status(200).send('Membership deleted.');
-                    else
-                        return res.status(500).send({
-                            error: 'An unknown internal server error occurred.',
-                        });
-                } else {
-                    return res.status(406).send({
-                        error: 'Could not find RSO by rsoid ' + rsoid,
-                    });
-                }
-            }
+            if (result.rowsAffected > 0) return res.status(200).send();
 
             // Otherwise...
             return res
