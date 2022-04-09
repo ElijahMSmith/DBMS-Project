@@ -115,25 +115,27 @@ router.post('/update', async (req, res) => {
         });
 });
 
-// Get the username and email of a user by their uid
+// Get a user's account by either their uid or email
 router.get('/find', async (req, res) => {
     // Extract the uid of the user from the query
-    const { uid } = req.query;
+    const { uid, email } = req.query;
+
+    if (!uid && !email) {
+        // 500 if neither is provided
+        return res
+            .status(500)
+            .send({ error: 'No uid provided in the request query.' });
+    }
 
     return sql.connect(config).then(async (pool) => {
-        if (uid) {
-            // Search for the user with a matching uid and return the username and email
-            const query = `SELECT u.username, u.email FROM Users u WHERE uid='${uid}'`;
-            const result = await pool.query(query);
+        // Search for the user with matching credentials
+        let query = uid
+            ? `SELECT * FROM Users WHERE uid='${uid}'`
+            : `SELECT * FROM Users WHERE email='${email}'`;
+        const result = await pool.query(query);
 
-            // Return the specific record found
-            return res.status(200).send(result.recordset[0]);
-        } else {
-            // 500 if no uid is provided
-            return res
-                .status(500)
-                .send({ error: 'No uid provided in the request query.' });
-        }
+        // Return the specific record found
+        return res.status(200).send(result.recordset[0]);
     });
 });
 

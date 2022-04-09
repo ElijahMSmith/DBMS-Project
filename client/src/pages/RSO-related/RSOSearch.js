@@ -33,7 +33,7 @@ const style = {
 };
 
 const RSOSearch = (props) => {
-    const { userData, setUserData } = props;
+    const { userData, setUserData, setSnackbar } = props;
 
     const [allRSOs, setAllRSOs] = useState([]);
     const [allUniversities, setAllUniversities] = useState([]);
@@ -47,6 +47,7 @@ const RSOSearch = (props) => {
     const [modalOp, setModalOp] = useState(CLOSED);
     const [modalOpen, setModalOpen] = useState(false);
     const [forceUpdate, toggleForceUpdate] = useState(false);
+
 
     useEffect(() => {
         // Get list of all universities
@@ -133,11 +134,6 @@ const RSOSearch = (props) => {
         } catch (err) {
             console.error(err);
         }
-    };
-
-    const updateRSO = (oldRSO, newRSO) => {
-        // TODO: find old RSO, make changes locally
-        // TODO: Submit edit to server
     };
 
     return (
@@ -228,7 +224,9 @@ const RSOSearch = (props) => {
                 mode={modalOp}
                 setModalOpen={setModalOpen}
                 rso={rso}
-                updateRSO={updateRSO}
+                allUniversities={allUniversities}
+                setSnackbar={setSnackbar}
+                refreshSearch={handleSearch}
             />
         </Box>
     );

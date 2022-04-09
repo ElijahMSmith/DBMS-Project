@@ -8,8 +8,6 @@ import {
     Menu,
     Button,
     MenuItem,
-    Snackbar,
-    Alert,
 } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircleOutlined';
 import LoginModal from './LoginModal';
@@ -27,20 +25,9 @@ const App = (props) => {
     const [anchorElUser, setAnchorElUser] = useState(null);
     const [loginOpen, setLoginOpen] = useState(false);
     const [signupOpen, setSignupOpen] = useState(false);
-    const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [snackbarSeverity, setSnackbarSeverity] = useState('success');
-    const [snackbarMessage, setSnackbarMessage] = useState(
-        'Logged in successfully!'
-    );
     const navigate = useNavigate();
 
-    const { userData, setUserData } = props;
-
-    const setSnackbar = (open, severity, message) => {
-        setSnackbarOpen(open);
-        setSnackbarSeverity(severity);
-        setSnackbarMessage(message);
-    };
+    const { userData, setUserData, setSnackbar } = props;
 
     return (
         <Box sx={{ flexGrow: 1 }}>
@@ -171,21 +158,6 @@ const App = (props) => {
                     setSnackbar={setSnackbar}
                 />
             ) : null}
-            <Snackbar
-                open={snackbarOpen}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-                autoHideDuration={5000}
-                onClose={() => setSnackbarOpen(false)}
-                sx={{ width: '400px' }}
-            >
-                <Alert
-                    onClose={() => setSnackbarOpen(false)}
-                    severity={snackbarSeverity}
-                    sx={{ width: '100%' }}
-                >
-                    {snackbarMessage}
-                </Alert>
-            </Snackbar>
             <Outlet />
         </Box>
     );

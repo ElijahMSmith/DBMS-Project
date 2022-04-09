@@ -26,7 +26,7 @@ router.post('/', async (req, res) => {
                 // RSOID does exist - this is updating an RSO
                 query = `UPDATE RSOs
             SET uid='${uid}', unid='${unid}', name='${name}', description='${description}', numMembers='${numMembers}'
-            WHERE rsoid='${rsoid}`;
+            WHERE rsoid='${rsoid}'`;
             }
 
             // Perform our query
@@ -48,6 +48,7 @@ router.post('/', async (req, res) => {
             });
         })
         .catch((err) => {
+            console.log(err);
             return res.status(500).send({ error: err });
         });
 });
@@ -110,11 +111,9 @@ router.post('/membership', async (req, res) => {
 
             // If there is already a relationship... do nothing
             if (result.recordset.length > 0)
-                return res
-                    .status(406)
-                    .send({
-                        error: 'A relationship between that student and RSO already exists',
-                    });
+                return res.status(406).send({
+                    error: 'A relationship between that student and RSO already exists',
+                });
 
             // If there isn't, we need to create it
             query = `INSERT INTO MemberOf VALUES ('${rsoid}', '${uid}')`;
@@ -148,11 +147,9 @@ router.delete('/membership', async (req, res) => {
 
             // If there is already a relationship... do nothing
             if (result.recordset.length <= 0)
-                return res
-                    .status(406)
-                    .send({
-                        error: 'A relationship between that student and RSO does not exist',
-                    });
+                return res.status(406).send({
+                    error: 'A relationship between that student and RSO does not exist',
+                });
 
             // If there isn't, we need to create it
             query = `DELETE FROM MemberOf WHERE rsoid='${rsoid}' AND uid='${uid}'`;

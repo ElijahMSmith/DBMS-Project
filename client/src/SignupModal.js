@@ -114,6 +114,7 @@ const SignupModal = (props) => {
                         variant="outlined"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
+                        inputProps={{ maxLength: 64 }}
                     />
                     <TextField
                         required
@@ -122,6 +123,7 @@ const SignupModal = (props) => {
                         variant="outlined"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        inputProps={{ maxLength: 64 }}
                     />
                     <TextField
                         required
@@ -130,6 +132,7 @@ const SignupModal = (props) => {
                         variant="outlined"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        inputProps={{ maxLength: 64 }}
                     />
 
                     <UniversityAutocomplete

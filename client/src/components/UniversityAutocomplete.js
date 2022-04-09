@@ -1,7 +1,7 @@
 import { Autocomplete, TextField } from '@mui/material';
 
 const UniversityAutocomplete = (props) => {
-    const { allUniversities, value, setUniversity } = props;
+    const { allUniversities, value, setUniversity, width = 300 } = props;
 
     return (
         <Autocomplete
@@ -19,7 +19,7 @@ const UniversityAutocomplete = (props) => {
                 return univ1.name === univ2.name && univ1.unid === univ2.unid;
             }}
             sx={{
-                width: 300,
+                width: width,
                 display: 'inline-flex',
                 msFlexDirection: 'column',
                 WebkitFlexDirection: 'column',
