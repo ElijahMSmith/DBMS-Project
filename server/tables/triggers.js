@@ -1,7 +1,8 @@
 function initializeTriggers(pool) {
-    pool.query(`
+    pool.query(
+        `
         CREATE TRIGGER TR_UniversityCount on Users
-        AFTER INSERT, UPDATE
+        AFTER INSERT, UPDATE, DELETE
         AS
             UPDATE Universities
             SET numStudents = (
@@ -12,7 +13,7 @@ function initializeTriggers(pool) {
 
     pool.query(`
         CREATE TRIGGER TR_MemberCount on [dbo].[MemberOf]
-        AFTER INSERT, UPDATE
+        AFTER INSERT, UPDATE, DELETE
         AS
         UPDATE [dbo].[RSOs] 
         SET numMembers = (
