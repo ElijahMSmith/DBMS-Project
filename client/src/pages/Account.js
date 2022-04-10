@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react';
-import {
-    TextField,
-    Box,
-    Autocomplete,
-    Button,
-    Snackbar,
-    Alert,
-} from '@mui/material';
+import { TextField, Box, Button, Snackbar, Alert, Stack } from '@mui/material';
 import axios from 'axios';
 import User from '../classes/User';
+import UniversityAutocomplete from '../components/UniversityAutocomplete';
 
 const Account = (props) => {
     let { userData, setUserData } = props;
@@ -16,10 +10,7 @@ const Account = (props) => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [university, setUniversity] = useState(null);
-    const [RSOs, setRSOs] = useState([]);
-
     const [universitiesList, setUniversitiesList] = useState([]);
-    const [rsoList, setRSOList] = useState([]);
 
     const [snackbarMsg, setSnackbarMsg] = useState('');
     const [snackbarSeverity, setSnackbarSeverity] = useState('success');
@@ -76,8 +67,6 @@ const Account = (props) => {
                 console.error(err);
                 createSnackbar('Something went wrong.', 'error');
             });
-
-        // TODO - submit new list of joined RSOs
     };
 
     useEffect(() => {
@@ -116,67 +105,49 @@ const Account = (props) => {
     }, [userData]);
 
     return (
-        <Box component="form" autoComplete="off" sx={{ textAlign: 'center' }}>
-            <TextField
-                label="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                error={!username}
-                sx={{ width: 300, mb: 3, mt: 10 }}
-            />
-
-            <br />
-
-            <TextField
-                label="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                error={!email}
-                sx={{ width: 300, mb: 3 }}
-            />
-
-            <br />
-
-            <Autocomplete
-                value={university}
-                disablePortal
-                options={universitiesList}
-                getOptionLabel={(univ) => univ.name}
-                onChange={(e, newValue) => {
-                    setUniversity(newValue ?? null);
-                }}
-                renderInput={(params) => (
-                    <TextField
-                        {...params}
-                        label="University"
-                        error={!university}
-                    />
-                )}
-                isOptionEqualToValue={(univ1, univ2) => {
-                    return (
-                        univ1.name === univ2.name && univ1.unid === univ2.unid
-                    );
-                }}
+        <Box
+            component="form"
+            autoComplete="off"
+            onSubmit={(e) => e.preventDefault()}
+        >
+            <Stack
+                spacing={4}
                 sx={{
-                    width: 300,
-                    display: 'inline-flex',
-                    msFlexDirection: 'column',
-                    WebkitFlexDirection: 'column',
-                    flexDirection: 'column',
-                    position: 'relative',
-                    mb: 3,
+                    justifyContent: 'center',
+                    alignItems: 'center',
                 }}
-            />
-
-            <br />
-
-            <Button
-                variant="contained"
-                onClick={submitEdits}
-                sx={{ width: 200 }}
             >
-                Submit Changes
-            </Button>
+                <TextField
+                    label="Username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    error={!username}
+                    sx={{ width: 300, mb: 3, mt: 10 }}
+                />
+
+                <TextField
+                    label="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    error={!email}
+                    sx={{ width: 300, mb: 3 }}
+                />
+
+                <UniversityAutocomplete
+                    value={university}
+                    allUniversities={universitiesList}
+                    setUniversity={setUniversity}
+                />
+
+                <Button
+                    variant="contained"
+                    type="submit"
+                    onClick={submitEdits}
+                    sx={{ width: 100 }}
+                >
+                    Submit Changes
+                </Button>
+            </Stack>
 
             <Snackbar
                 open={snackbarOpen}
@@ -195,15 +166,6 @@ const Account = (props) => {
             </Snackbar>
         </Box>
     );
-
-    // Username
-    // Email
-    // Password
-    // RSOs (can add and remove)
-    // University (can change to another option)
-
-    // TODO: Create a route for updating a user's information
-    // TODO: Update route in signup modal to get universities list
 };
 
 export default Account;
