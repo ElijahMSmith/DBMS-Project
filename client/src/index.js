@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
 import Home from './pages/Home';
 import RSOs from './pages/RSOs';
+import Universitydetails from './pages/universitydetails';
 import Universities from './pages/Universities';
 import MyEvents from './pages/MyEvents';
 import Account from './pages/Account';
@@ -50,6 +51,14 @@ const ContainerComponent = () => {
                             />
                         }
                     />
+                    <Route
+                        path="university/details"
+                        element={
+                            <Universitydetails
+                                userData={userData}
+                                setUserData={setUserData}
+                            />
+                        }/>
                     <Route
                         path="myevents"
                         element={
