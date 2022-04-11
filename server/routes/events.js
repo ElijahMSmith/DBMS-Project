@@ -97,8 +97,7 @@ router.delete('/', async(req, res) => {
     });
 });
 
-router.get('/', async(req, res) => {
-    // GET - List of events for a user, a university, or an RSO
+router.get('/owned', async(req, res) => {
     const {
         uid,
         unid,
@@ -112,28 +111,73 @@ router.get('/', async(req, res) => {
 
         // 1: All events for a given university
         if(unid) {
-            query += `WHERE unid='${unid}' AND published='TRUE' `
+            query += `WHERE unid='${unid}' `;
         }
 
         // 2: All events for a given RSO
         else if(rsoid) {
-            query += `WHERE rsoid='${rsoid}' AND published='TRUE' `
+            query += `WHERE rsoid='${rsoid}' `;
         }
 
         // 3: All events for a given User
         else if(uid) {
+            // Only return this specific user's events
+            query += `WHERE uid='${uid}' `;
+        }
+
+        else {
+            query += `WHERE eid=*`;
+        }
+
+        // If the user doesn't want all events, only get the upcoming events
+        if(!all)
+            query += `AND DATEDIFF(hour, SYSDATETIME(), datetime) > 0 `;
+        
+        // Order the events by "soonest first"
+        query += `ORDER BY CONVERT(date, datetime) asc`;
+
+        // Get our data, returns
+        const result = await pool.query(query);
+        return res.status(200).send({"events": result.recordset});
+    }).catch((e) => {
+        return res.status(500).send({"error": "An unexpected error occured: " + e});
+    });
+})
+
+router.get('/', async(req, res) => {
+    // GET - List of events for a user, a university, or an RSO
+    const {
+        uid,
+        all
+    } = req.query;
+
+    return sql.connect(config).then(async(pool) => {
+        // Determine what we're fetching
+        let query = 'SELECT * FROM Events ';
+
+        // 3: All events for a given User
+        if(uid) {
             // Users can have events:
-            // 1: That they own (published/unpublished)
-            // 2: That are from an RSO they are a part of
-            // 3: That are from a University they are a part of
-            // 4: That are public
-            query += 
-                `WHERE 
-                    (uid='${uid}' OR (
-                        (rsoid IN (SELECT rsoid FROM MemberOf WHERE uid='${uid}') OR
-                        unid = (SELECT unid FROM Users WHERE uid='${uid}'))
+            // 1: That are from an RSO they are a part of
+            // 2: That are from a University they are a part of
+            // 3: That are public
+            query += `WHERE (
+                    (
+                        (
+                            rsoid IN (SELECT rsoid FROM MemberOf WHERE uid='${uid}') OR
+                            unid = (SELECT unid FROM Users WHERE uid='${uid}')
+                        )
                         AND published='TRUE'
-                    ) OR (rsoid IS NULL AND unid IS NULL)) `;
+                    ) 
+                    OR 
+                    (
+                        rsoid IS NULL AND 
+                        unid IS NULL AND 
+                        approved='TRUE' AND published='TRUE'
+                    )
+                ) `;
+        } else {
+            query += `WHERE rsoid IS NULL AND unid IS NULL AND approved='TRUE' AND published='TRUE'`;
         }
 
         // If the user doesn't want all events, only get the upcoming events
