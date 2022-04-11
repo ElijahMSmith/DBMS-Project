@@ -2,11 +2,11 @@ import { useState, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
-import Home from './pages/Home';
+import Home from './pages/Events/Home';
 import Universitydetails from './pages/universitydetails';
 import RSOSearch from './pages/RSO-related/RSOSearch';
 import Universities from './pages/Universities';
-import MyEvents from './pages/MyEvents';
+import MyEvents from './pages/Events/MyEvents';
 import Account from './pages/Account';
 import { Alert, Snackbar, Typography } from '@mui/material';
 
@@ -77,7 +77,8 @@ const ContainerComponent = () => {
                                 userData={userData}
                                 setUserData={setUserData}
                             />
-                        }/>
+                        }
+                    />
                     <Route
                         path="myevents"
                         element={
@@ -135,3 +136,23 @@ root.render(
         <ContainerComponent />
     </StrictMode>
 );
+
+const handleError = (error) => {
+    if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.log(error.response.data);
+        console.log(error.response.status);
+        console.log(error.response.headers);
+    } else if (error.request) {
+        // The request was made but no response was received
+        // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+        // http.ClientRequest in node.js
+        console.log(error.request);
+    } else {
+        // Something happened in setting up the request that triggered an Error
+        console.log('Error', error.message);
+    }
+};
+
+export { handleError };

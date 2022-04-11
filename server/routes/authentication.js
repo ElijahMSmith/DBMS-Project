@@ -25,15 +25,15 @@ router.post('/register', async (req, res) => {
             // Next: Generate the user's uuid
             const newUserID = uuidv4();
 
+            console.log({ newUserID, username, email, password, unid });
             // Push this user information into our database
             request = `INSERT INTO Users VALUES ('${newUserID}', '${username}', '${email}', '${password}', '${unid}', 1)`;
             result = await pool.query(request);
 
             // Something wrong happened!
-            if (result.rowsAffected[0] !== 1)
+            if (result.rowsAffected.length <= 0)
                 return res.status(500).send({
-                    error:
-                        'An unknown internal server error occurred during account creation',
+                    error: 'An unknown internal server error occurred during account creation',
                 });
 
             // Return the newly-created user object
@@ -105,8 +105,7 @@ router.post('/update', async (req, res) => {
                 const result = await pool.query(request);
                 if (result.rowsAffected <= 0)
                     return res.status(406).send({
-                        error:
-                            'No Changes Made. The User ID or other inputs were invalid.',
+                        error: 'No Changes Made. The User ID or other inputs were invalid.',
                     });
 
                 return res.status(200).send();
@@ -125,8 +124,7 @@ router.get('/find', async (req, res) => {
     if (!uid && !email && !emailList) {
         // 500 if nothing is provided
         return res.status(500).send({
-            error:
-                'No uid, email, or email list provided in the request query.',
+            error: 'No uid, email, or email list provided in the request query.',
         });
     }
 

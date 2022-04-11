@@ -11,7 +11,8 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import User from './classes/User';
-import UniversityAutocomplete from './components/UniversityAutocomplete';
+import ObjListAutocomplete from './components/ObjListAutocomplete';
+import { handleError } from '.';
 
 const style = {
     position: 'absolute',
@@ -61,7 +62,7 @@ const SignupModal = (props) => {
                     console.log(resp.data);
                 }
             })
-            .catch((err) => console.log(err));
+            .catch((err) => handleError(err));
     }, [open]);
 
     const submitRegistration = () => {
@@ -90,7 +91,7 @@ const SignupModal = (props) => {
                     setErrorMsg('That email is already in use!');
                 else {
                     setErrorMsg('An unexpected error occurred.');
-                    console.log(err);
+                    handleError(err);
                 }
             });
     };
@@ -106,7 +107,7 @@ const SignupModal = (props) => {
                 <Typography variant="h4" sx={{ pb: 2, textAlign: 'center' }}>
                     Create New Account
                 </Typography>
-                <Stack spacing={1}>
+                <Stack spacing={2}>
                     <TextField
                         required
                         type="text"
@@ -135,10 +136,11 @@ const SignupModal = (props) => {
                         inputProps={{ maxLength: 64 }}
                     />
 
-                    <UniversityAutocomplete
+                    <ObjListAutocomplete
                         value={university}
-                        allUniversities={universitiesList}
-                        setUniversity={setUniversity}
+                        allOptions={universitiesList}
+                        setOption={setUniversity}
+                        width="100%"
                     />
 
                     <Divider />

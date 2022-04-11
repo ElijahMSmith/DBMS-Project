@@ -1,10 +1,11 @@
 import { Autocomplete, TextField } from '@mui/material';
 
-const UniversityAutocomplete = (props) => {
+const ObjListAutocomplete = (props) => {
     const {
-        allUniversities,
+        allOptions,
         value,
-        setUniversity,
+        setOption,
+        label = 'University',
         width = 300,
         disabled = false,
     } = props;
@@ -14,16 +15,14 @@ const UniversityAutocomplete = (props) => {
             value={value}
             disabled={disabled}
             disablePortal
-            options={allUniversities}
-            getOptionLabel={(univ) => univ.name}
-            onChange={(e, newValue) => {
-                setUniversity(newValue ?? null);
-            }}
+            options={allOptions}
+            getOptionLabel={(option) => option.name}
+            onChange={(e, newValue) => setOption(newValue ?? null)}
             renderInput={(params) => (
-                <TextField {...params} label="University" error={!value} />
+                <TextField {...params} label={label} error={!value} />
             )}
-            isOptionEqualToValue={(univ1, univ2) => {
-                return univ1.name === univ2.name && univ1.unid === univ2.unid;
+            isOptionEqualToValue={(op1, op2) => {
+                return op1.name === op2.name && op1.unid === op2.unid;
             }}
             sx={{
                 width: width,
@@ -37,4 +36,4 @@ const UniversityAutocomplete = (props) => {
     );
 };
 
-export default UniversityAutocomplete;
+export default ObjListAutocomplete;

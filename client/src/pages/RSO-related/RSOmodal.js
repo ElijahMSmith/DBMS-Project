@@ -10,7 +10,8 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import UniversityAutocomplete from '../../components/UniversityAutocomplete';
+import ObjListAutocomplete from '../../components/ObjListAutocomplete';
+import { handleError } from '../..';
 
 const CREATE = 1;
 const EDIT = 2;
@@ -58,24 +59,6 @@ const RSOmodal = (props) => {
     // Not changeable, retrieved by the server
     const [owner, setOwner] = useState(null);
     const [photoUrl, setPhotoUrl] = useState('');
-
-    const handleError = (error) => {
-        if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.headers);
-        } else if (error.request) {
-            // The request was made but no response was received
-            // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-            // http.ClientRequest in node.js
-            console.log(error.request);
-        } else {
-            // Something happened in setting up the request that triggered an Error
-            console.log('Error', error.message);
-        }
-    };
 
     const buildNewRSO = () => {
         console.log({ university, name, description, memberEmails });
@@ -321,10 +304,10 @@ const RSOmodal = (props) => {
                             error={description.length === 0}
                         />
 
-                        <UniversityAutocomplete
+                        <ObjListAutocomplete
                             value={university}
-                            setUniversity={setUniversity}
-                            allUniversities={allUniversities}
+                            allOptions={allUniversities}
+                            setOption={setUniversity}
                             width="100%"
                             disabled
                         />

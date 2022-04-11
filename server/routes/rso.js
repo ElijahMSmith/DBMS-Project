@@ -44,8 +44,7 @@ router.post('/', async (req, res) => {
             // Check to see if the change occurred
             if (result.rowsAffected <= 0)
                 return res.status(406).send({
-                    error:
-                        'No Changes Made. Either insertion failed, or no matching RSOID exists.',
+                    error: 'No Changes Made. Either insertion failed, or no matching RSOID exists.',
                 });
 
             return res.status(200).send({
@@ -128,8 +127,7 @@ router.post('/membership', async (req, res) => {
                 // Should never happen for a new club
                 if (result.recordset.length > 0)
                     return res.status(406).send({
-                        error:
-                            'A relationship between that and RSO already exists',
+                        error: 'A relationship between that and RSO already exists',
                     });
 
                 // If there isn't, we need to create it
@@ -164,8 +162,7 @@ router.delete('/membership', async (req, res) => {
             // If there is not a relationship... do nothing
             if (result.recordset.length <= 0)
                 return res.status(406).send({
-                    error:
-                        'A relationship between that student and RSO does not exist',
+                    error: 'A relationship between that student and RSO does not exist',
                 });
 
             // If there is, then we need to delete it
