@@ -8,6 +8,7 @@ const ObjListAutocomplete = (props) => {
         label = 'University',
         width = 300,
         disabled = false,
+        defaultValue = null,
     } = props;
 
     return (
@@ -17,7 +18,7 @@ const ObjListAutocomplete = (props) => {
             disablePortal
             options={allOptions}
             getOptionLabel={(option) => option.name}
-            onChange={(e, newValue) => setOption(newValue ?? null)}
+            onChange={(e, newValue) => setOption(newValue ?? defaultValue)}
             renderInput={(params) => (
                 <TextField {...params} label={label} error={!value} />
             )}

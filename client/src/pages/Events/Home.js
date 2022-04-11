@@ -68,7 +68,7 @@ const Home = (props) => {
         name: 'Public KnightHacks Event',
         description:
             'Public event description asdfasdfasdfasdfasdfasfasdfasdfasdfasdfasdfasdfa.',
-        category: 'Meet and Greet',
+        category: 'Presentation',
         time: '8:00PM',
         date: new Date('5/10/2022'),
         location: {
@@ -90,7 +90,7 @@ const Home = (props) => {
         uid: 'c2d22b9f-d07b-4399-ac31-221cd264de49',
         name: 'Uni KnightHacks Event',
         description: 'Uni event description.',
-        category: 'Luncheon',
+        category: 'Fundraising',
         time: '8:30PM',
         date: new Date('5/11/2022'),
         location: {
@@ -112,7 +112,7 @@ const Home = (props) => {
         uid: 'c2d22b9f-d07b-4399-ac31-221cd264de49',
         name: 'RSO KnightHacks Event',
         description: 'RSO event description.',
-        category: 'Dinner',
+        category: 'Networking',
         time: '9:00PM',
         date: new Date('5/12/2022'),
         location: {
@@ -134,7 +134,7 @@ const Home = (props) => {
         uid: 'c2d22b9f-d07b-4399-ac31-221cd264de49',
         name: 'Unpublished Public KnightHacks Event',
         description: 'Unpublished event description.',
-        category: 'IDUNNO',
+        category: 'Casual',
         time: '10:00PM',
         date: new Date('5/16/2022'),
         location: {
