@@ -134,6 +134,7 @@ const Account = (props) => {
                 />
 
                 <ObjListAutocomplete
+                    disabled
                     value={university}
                     allOptions={universitiesList}
                     setOption={setUniversity}
