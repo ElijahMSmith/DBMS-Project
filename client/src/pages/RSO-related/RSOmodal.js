@@ -39,6 +39,7 @@ const RSOmodal = (props) => {
         setSnackbar,
         refreshSearch,
         userData,
+        setUserData,
     } = props;
 
     // Fixed fields, not editable by user
@@ -60,6 +61,23 @@ const RSOmodal = (props) => {
     const [owner, setOwner] = useState(null);
     const [photoUrl, setPhotoUrl] = useState('');
 
+    const upgradePerms = () => {
+        const newUserData = {
+            uid: userData.uid,
+            email: userData.uid,
+            username: userData.username,
+            unid: university.unid,
+            permLevel: 2,
+        };
+        axios
+            .post('http://localhost:1433/auth/update', newUserData)
+            .then((resp) => {
+                setUserData(newUserData);
+                console.log('Upgraded perms to admin');
+            })
+            .catch((err) => handleError(err));
+    };
+
     const buildNewRSO = () => {
         if (
             !university ||
@@ -77,6 +95,8 @@ const RSOmodal = (props) => {
             description: description.replace(/'/g, "''"),
             numMembers,
         };
+
+        console.log(newRSO);
 
         if (mode === EDIT) {
             axios
@@ -158,6 +178,7 @@ const RSOmodal = (props) => {
                                         'success',
                                         'RSO successfully created!'
                                     );
+                                    upgradePerms();
                                     refreshSearch();
                                 })
                                 .catch((err) => {

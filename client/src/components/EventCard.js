@@ -6,20 +6,20 @@ import {
     CardActions,
     Button,
     Card,
-    ButtonBase,
 } from '@mui/material';
-import { format, parse } from 'fecha';
 import { handleError } from '..';
+import { format } from 'fecha';
 
-const DefaultLocation = { lat: 28.602307480049603, lng: -81.20016915689729 };
-const DefaultZoom = 10;
+const formatDate = (dateTime) => {
+    return dateTime.toISOString().slice(0, 19).replace('T', ' ');
+};
 
 //const CREATE = 1;
 const EDIT = 2;
 const VIEW = 3;
 //const CLOSED = 4;
 
-const dtFormatString = 'YYYY-MM-DD @ HH:mm:ss';
+const dtDisplayFormat = 'YYYY-MM-DD @ HH:mm:ss';
 
 const EventCard = (props) => {
     const {
@@ -30,6 +30,7 @@ const EventCard = (props) => {
         setModalOpen,
         userData,
         setSnackbar,
+        approving = false,
     } = props;
 
     const {
@@ -53,6 +54,36 @@ const EventCard = (props) => {
             .delete(`http://localhost:1433/events`, { data: { eid } })
             .then((res) => {
                 setSnackbar(true, 'success', 'Successfully deleted event!');
+                refreshEvents();
+            })
+            .catch((err) => {
+                handleError(err);
+            });
+    };
+
+    const approveEvent = () => {
+        const updatedEvent = {
+            eid: event.eid,
+            uid: event.uid,
+            unid: event.unid,
+            rsoid: event.rsoid,
+            name: event.name,
+            description: event.description,
+            category: event.category,
+            datetime: formatDate(event.datetime),
+            location: event.location,
+            lat: event.lat,
+            lng: event.lng,
+            contactPhone: event.contactPhone,
+            contactEmail: event.contactEmail,
+            published: true,
+            approved: true,
+        };
+
+        axios
+            .post(`http://localhost:1433/events/`, updatedEvent)
+            .then((res) => {
+                setSnackbar(true, 'success', 'Successfully approved event!');
                 refreshEvents();
             })
             .catch((err) => {
@@ -98,7 +129,7 @@ const EventCard = (props) => {
                 )}
 
                 <Typography sx={{ textAlign: 'center', mt: 1 }} noWrap>
-                    {format(datetime, dtFormatString)}
+                    {format(event.datetime, dtDisplayFormat)}
                 </Typography>
                 <Typography sx={{ textAlign: 'center', mt: 1 }} noWrap>
                     Location: {location}
@@ -129,7 +160,7 @@ const EventCard = (props) => {
                     >
                         View
                     </Button>
-                    {owned ? (
+                    {!approving && owned ? (
                         <Button
                             variant="outlined"
                             size="small"
@@ -146,7 +177,7 @@ const EventCard = (props) => {
                             Edit
                         </Button>
                     ) : null}
-                    {owned ? (
+                    {!approving && owned ? (
                         <Button
                             variant="outlined"
                             size="small"
@@ -157,6 +188,19 @@ const EventCard = (props) => {
                             onClick={deleteEvent}
                         >
                             Delete
+                        </Button>
+                    ) : null}
+                    {approving ? (
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                                mx: 1,
+                                color: 'orange',
+                            }}
+                            onClick={approveEvent}
+                        >
+                            Approve
                         </Button>
                     ) : null}
                 </Box>

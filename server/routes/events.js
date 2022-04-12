@@ -150,7 +150,7 @@ router.get('/owned', async (req, res) => {
                 // Only return this specific user's events
                 query += `WHERE uid='${uid}' `;
             } else {
-                query += `WHERE eid=*`;
+                query += `WHERE eid!=''`;
             }
 
             // If the user doesn't want all events, only get the upcoming events

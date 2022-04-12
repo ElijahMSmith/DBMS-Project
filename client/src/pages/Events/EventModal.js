@@ -12,6 +12,16 @@ import {
     TextField,
     Typography,
 } from '@mui/material';
+import {
+    EmailIcon,
+    EmailShareButton,
+    FacebookIcon,
+    FacebookShareButton,
+    LinkedinIcon,
+    LinkedinShareButton,
+    TwitterIcon,
+    TwitterShareButton,
+} from 'react-share';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
@@ -42,7 +52,6 @@ const visibilityOptions = [
 const CREATE = 1;
 const EDIT = 2;
 const VIEW = 3;
-const CLOSED = 4;
 
 // Page Direction
 const PREV = -1;
@@ -78,7 +87,7 @@ const EventModal = (props) => {
         mode,
         event,
         setModalOpen,
-        joinedRSOs,
+        rsoOptions,
         setSnackbar,
         refreshEvents,
         userData,
@@ -136,7 +145,7 @@ const EventModal = (props) => {
 
         if (!rsoid) setEventRSO(null);
         else {
-            for (let irso of joinedRSOs) {
+            for (let irso of rsoOptions) {
                 if (irso.rsoid === rsoid) {
                     setEventRSO(irso);
                     break;
@@ -247,7 +256,12 @@ const EventModal = (props) => {
                             approved: eventVisibility === PUBLIC ? false : true,
                         })
                         .then((res) => {
-                            // TODO
+                            setSnackbar(
+                                true,
+                                'success',
+                                'Event created successfully!'
+                            );
+                            setModalOpen(false);
                             refreshEvents();
                         })
                         .catch((err) => {
@@ -310,6 +324,46 @@ const EventModal = (props) => {
                                 touchEvents={false}
                                 mouseEvents={false}
                             />
+                        </Box>
+                        <Box
+                            sx={{
+                                mt: 2,
+                                display: 'flex',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            <EmailShareButton
+                                url="http://localhost:3000"
+                                subject="Check out this Event on Univents!"
+                                body={`${eventName}, ${
+                                    rsoid
+                                        ? 'Hosted by ' + rsoName
+                                        : unid
+                                        ? 'Hosted by ' + uniName
+                                        : 'Open to Everyone'
+                                }\n${format(
+                                    eventDateTime,
+                                    dtDisplayFormat
+                                )}\n${eventLocation} (${eventLat}, ${eventLng})\n\n`}
+                            >
+                                <EmailIcon size={32} round />
+                            </EmailShareButton>
+                            <Box sx={{ width: '20px' }} />
+                            <TwitterShareButton
+                                url="http://localhost:3000"
+                                title={`Check out this Event!\n\n${eventName}, ${
+                                    rsoid
+                                        ? 'Hosted by ' + rsoName
+                                        : unid
+                                        ? 'Hosted by ' + uniName
+                                        : 'Open to Everyone'
+                                }\n${format(
+                                    eventDateTime,
+                                    dtDisplayFormat
+                                )}\n${eventLocation} (${eventLat}, ${eventLng})\n`}
+                            >
+                                <TwitterIcon size={32} round />
+                            </TwitterShareButton>
                         </Box>
                     </>
                 ) : (
@@ -402,7 +456,7 @@ const EventModal = (props) => {
                                         ) : eventVisibility === RSO ? (
                                             // Render RSO picker
                                             <ObjListAutocomplete
-                                                allOptions={joinedRSOs}
+                                                allOptions={rsoOptions}
                                                 value={eventRSO}
                                                 setOption={setEventRSO}
                                                 label="RSO"

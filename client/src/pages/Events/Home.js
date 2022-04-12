@@ -29,18 +29,6 @@ const EDIT = 2;
 const VIEW = 3;
 const CLOSED = 4;
 
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 800,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-};
-
 const Home = (props) => {
     const { userData, setUserData, setSnackbar } = props;
 
@@ -69,9 +57,9 @@ const Home = (props) => {
         let res;
         if (userData)
             res = await axios.get(
-                `http://localhost:1433/events/?uid=${userData.uid}&all`
+                `http://localhost:1433/events/?uid=${userData.uid}&all=true`
             );
-        else res = await axios.get(`http://localhost:1433/events/?all`);
+        else res = await axios.get(`http://localhost:1433/events/?all=true`);
 
         if (res.status === 200) {
             for (let ievent of res.data.events) {
@@ -142,13 +130,12 @@ const Home = (props) => {
     };
 
     useEffect(() => {
-        getRSOs();
-        getUniversities();
+        getRSOs().then(() => getUniversities());
     }, [userData]);
 
     useEffect(() => {
         refreshEvents();
-    }, [checkboxes, date, userData]);
+    }, [checkboxes, uniList, rsoList, date, userData]);
 
     return (
         <Box sx={{ mt: 2, ml: 2 }}>
@@ -266,7 +253,7 @@ const Home = (props) => {
                 setModalOpen={setModalOpen}
                 event={currentEvent ?? {}}
                 mode={modalOp}
-                joinedRSOs={joinedRSOList}
+                rsoOptions={joinedRSOList}
                 setSnackbar={setSnackbar}
                 refreshEvents={refreshEvents}
                 userData={userData}
