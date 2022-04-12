@@ -17,10 +17,14 @@ function initializeTriggers(pool) {
         AS
         UPDATE [dbo].[RSOs] 
         SET numMembers = (
-            SELECT COUNT(*) FROM [dbo].[MemberOf] membr
-            WHERE membr.rsoid = [dbo].[RSOs].rsoid
+            SELECT COUNT(*) FROM [dbo].[MemberOf] member
+            WHERE member.rsoid = [dbo].[RSOs].rsoid
         );
     `);
 }
 
-exports = initializeTriggers;
+function dropTriggers(pool) {
+    pool.query(`DROP TRIGGER TR_MemberCount;`);
+}
+
+module.exports = initializeTriggers;

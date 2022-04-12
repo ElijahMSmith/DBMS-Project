@@ -12,9 +12,9 @@ app.use(
 );
 
 // Import routes
-const authRoutes  = require('./routes/authentication');
-const uniRoutes   = require('./routes/university');
-const rsoRoutes   = require('./routes/rso');
+const authRoutes = require('./routes/authentication');
+const uniRoutes = require('./routes/university');
+const rsoRoutes = require('./routes/rso');
 const eventRoutes = require('./routes/events');
 
 // Import tables

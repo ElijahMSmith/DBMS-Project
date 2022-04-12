@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { TextField, Box, Button, Snackbar, Alert, Stack } from '@mui/material';
 import axios from 'axios';
 import User from '../classes/User';
-import UniversityAutocomplete from '../components/UniversityAutocomplete';
+import ObjListAutocomplete from '../components/ObjListAutocomplete';
 
 const Account = (props) => {
     let { userData, setUserData } = props;
@@ -133,10 +133,10 @@ const Account = (props) => {
                     sx={{ width: 300, mb: 3 }}
                 />
 
-                <UniversityAutocomplete
+                <ObjListAutocomplete
                     value={university}
-                    allUniversities={universitiesList}
-                    setUniversity={setUniversity}
+                    allOptions={universitiesList}
+                    setOption={setUniversity}
                 />
 
                 <Button

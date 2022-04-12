@@ -1,154 +1,61 @@
-import { typeImplementation } from '@testing-library/user-event/dist/type/typeImplementation';
+const DefaultLocation = { lat: 28.602307480049603, lng: -81.20016915689729 };
 
-export class Event {
-    eid;
-    name;
-    desc;
-    category;
-    time;
-    date;
-    location;
-    contactPhone;
-    contactEmail;
-    published;
-    owner;
-    ratings;
-    comments;
+class Event {
+    eid = '';
+    unid = '';
+    uniName = '';
+    rsoid = '';
+    rsoName = '';
+    uid = '';
+    name = '';
+    description = '';
+    category = '';
+    dateTime = new Date();
+    location = '';
+    lat = DefaultLocation.lat;
+    lng = DefaultLocation.lng;
+    contactPhone = '';
+    contactEmail = '';
+    published = false;
+    approved = false;
+
     constructor(
         eid,
+        unid,
+        uniName,
+        rsoid,
+        rsoName,
+        uid,
         name,
-        desc,
+        description,
         category,
-        time,
-        date,
+        dateTime,
         location,
         contactPhone,
         contactEmail,
         published,
-        owner,
-        comments,
-        ratings
+        approved,
+        lat,
+        lng
     ) {
         this.eid = eid;
+        this.unid = unid;
+        this.uniName = uniName;
+        this.rsoid = rsoid;
+        this.rsoName = rsoName;
+        this.uid = uid;
         this.name = name;
-        this.desc = desc;
+        this.description = description;
         this.category = category;
-        this.time = time;
-        this.date = date;
+        this.dateTime = dateTime;
         this.location = location;
         this.contactPhone = contactPhone;
         this.contactEmail = contactEmail;
         this.published = published;
-        this.owner = owner;
-        this.comments = comments ?? [];
-        this.ratings = ratings ?? [];
-    }
-}
-
-export class RSOEvent {
-    constructor(
-        rsoid, // RSO hosting event
-        eid,
-        name,
-        desc,
-        category,
-        time,
-        date,
-        location,
-        contactPhone,
-        contactEmail,
-        published,
-        owner,
-        comments,
-        ratings
-    ) {
-        super(
-            eid,
-            name,
-            desc,
-            category,
-            time,
-            date,
-            location,
-            contactPhone,
-            contactEmail,
-            published,
-            owner,
-            comments,
-            ratings
-        );
-        this.rsoid = rsoid;
-    }
-}
-
-export class PrivateEvent {
-    constructor(
-        uid, // University hosting event
-        eid,
-        name,
-        desc,
-        category,
-        time,
-        date,
-        location,
-        contactPhone,
-        contactEmail,
-        published,
-        owner,
-        comments,
-        ratings
-    ) {
-        super(
-            eid,
-            name,
-            desc,
-            category,
-            time,
-            date,
-            location,
-            contactPhone,
-            contactEmail,
-            published,
-            owner,
-            comments,
-            ratings
-        );
-        this.uid = uid;
-    }
-}
-
-export class PublicEvent {
-    constructor(
-        approved,
-        eid,
-        name,
-        desc,
-        category,
-        time,
-        date,
-        location,
-        contactPhone,
-        contactEmail,
-        published,
-        owner,
-        comments,
-        ratings
-    ) {
-        super(
-            eid,
-            name,
-            desc,
-            category,
-            time,
-            date,
-            location,
-            contactPhone,
-            contactEmail,
-            published,
-            owner,
-            comments,
-            ratings
-        );
         this.approved = approved;
+        this.lat = lat;
+        this.lng = lng;
     }
 }
+
+export default Event;
