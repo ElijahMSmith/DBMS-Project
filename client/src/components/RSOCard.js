@@ -7,6 +7,7 @@ import {
     Button,
     Card,
 } from '@mui/material';
+import { handleError } from '..';
 
 //const CREATE = 1;
 const EDIT = 2;
@@ -22,7 +23,7 @@ const RSOCard = (props) => {
         setModalOpen,
         setRSO,
         userData,
-        toggleForceUpdate,
+        refreshRSOs,
         forceUpdate,
     } = props;
 
@@ -35,11 +36,7 @@ const RSOCard = (props) => {
             .then((resp) => {
                 if (resp.status === 200) {
                     console.log('Successfully joined RSO');
-                    props.rso.joined = true;
-                    props.rso.numMembers++;
-                    // Force refresh
-                    setRSO(props.rso);
-                    toggleForceUpdate(!forceUpdate);
+                    refreshRSOs(!forceUpdate);
                 } else {
                     console.error(
                         'POST join RSO returned status ' + resp.status
@@ -63,11 +60,7 @@ const RSOCard = (props) => {
             .then((resp) => {
                 if (resp.status === 200) {
                     console.log('Successfully left RSO');
-                    props.rso.joined = false;
-                    props.rso.numMembers--;
-                    // Force refresh
-                    setRSO(props.rso);
-                    toggleForceUpdate(!forceUpdate);
+                    refreshRSOs(!forceUpdate);
                 } else {
                     console.error(
                         'DELETE leave RSO returned status ' + resp.status
@@ -76,8 +69,7 @@ const RSOCard = (props) => {
                 }
             })
             .catch((err) => {
-                console.error(err);
-                console.log(err.response.data);
+                handleError(err);
             });
     };
 

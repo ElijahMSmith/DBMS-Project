@@ -105,7 +105,10 @@ const RSOSearch = (props) => {
                     }
 
                     if (userData) rso.owned = rso.uid === userData.uid;
+
+                    console.log(rso);
                 }
+
                 setAllRSOs(resp.data.rsos);
                 console.log('Successfully retrieved RSOs');
             } else {
@@ -200,6 +203,7 @@ const RSOSearch = (props) => {
                                 setRSO={setRSO}
                                 toggleForceUpdate={toggleForceUpdate}
                                 forceUpdate={forceUpdate}
+                                refreshRSOs={handleSearch}
                             />
                         </Grid>
                     );

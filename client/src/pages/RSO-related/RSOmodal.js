@@ -61,7 +61,6 @@ const RSOmodal = (props) => {
     const [photoUrl, setPhotoUrl] = useState('');
 
     const buildNewRSO = () => {
-        console.log({ university, name, description, memberEmails });
         if (
             !university ||
             name === '' ||
@@ -78,8 +77,6 @@ const RSOmodal = (props) => {
             description: description.replace(/'/g, "''"),
             numMembers,
         };
-
-        console.log('Mode: ' + mode);
 
         if (mode === EDIT) {
             axios
@@ -144,13 +141,10 @@ const RSOmodal = (props) => {
                             numMembers: 0,
                         })
                         .then((res) => {
-                            console.log('returned', res.data);
                             const newid = res.data.rsoid;
 
                             const uidList = [userData.uid];
                             for (let iuser of uidUserList) uidList.push(iuser);
-
-                            console.log(uidList);
 
                             axios
                                 .post('http://localhost:1433/rsos/membership', {

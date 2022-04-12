@@ -16,6 +16,7 @@ import axios from 'axios';
 import { handleError } from '../..';
 import EventCard from '../../components/EventCard';
 import EventModal from './EventModal';
+import Event from '../../classes/Event';
 
 // Event Visibility
 const PUBLIC = 1;
@@ -49,9 +50,11 @@ const Home = (props) => {
     const [uniList, setUniList] = useState([]);
 
     // Which events are included in the display
-    const [publicOnly, setPublicOnly] = useState(false);
-    const [myUniOnly, setMyUniOnly] = useState(false);
-    const [joinedRSOsOnly, setJoinedRSOsOnly] = useState(false);
+    const [checkboxes, setCheckboxes] = useState({
+        public: false,
+        uni: false,
+        rso: false,
+    });
     const [date, setDate] = useState();
 
     const [currentEvent, setCurrentEvent] = useState(null);
@@ -59,111 +62,38 @@ const Home = (props) => {
     const [modalOp, setModalOp] = useState(CLOSED);
     const [modalOpen, setModalOpen] = useState(false);
 
-    // TODO: remove later once we had endpoints
-    const dummyEvent1 = {
-        eid: 'eid1',
-        unid: 'fd8fc3d3-824a-476b-9207-be5483ec1459',
-        rsoid: '413d0363-c62b-4da0-bbc0-0303c319521d',
-        uid: 'c2d22b9f-d07b-4399-ac31-221cd264de49',
-        name: 'Public KnightHacks Event',
-        description:
-            'Public event description asdfasdfasdfasdfasdfasfasdfasdfasdfasdfasdfasdfa.',
-        category: 'Presentation',
-        time: '8:00PM',
-        date: new Date('5/10/2022'),
-        location: {
-            lat: 28.60065314250197,
-            lng: -81.197628058419,
-        },
-        contactPhone: '111-222-3333',
-        contactEmail: 'notareal@email.com',
-        visibility: PUBLIC,
-        published: true,
-        rsoName: 'Knight Hacks',
-        uniName: 'University of Tentral Torida',
-    };
-
-    const dummyEvent2 = {
-        eid: 'eid2',
-        unid: 'fd8fc3d3-824a-476b-9207-be5483ec1459',
-        rsoid: '413d0363-c62b-4da0-bbc0-0303c319521d',
-        uid: 'c2d22b9f-d07b-4399-ac31-221cd264de49',
-        name: 'Uni KnightHacks Event',
-        description: 'Uni event description.',
-        category: 'Fundraising',
-        time: '8:30PM',
-        date: new Date('5/11/2022'),
-        location: {
-            lat: 28.60291995566528,
-            lng: -81.19859302988073,
-        },
-        contactPhone: '111-222-3334',
-        contactEmail: 'notareal2@email.com',
-        visibility: UNI,
-        published: true,
-        rsoName: 'Knight Hacks',
-        uniName: 'University of Tentral Torida',
-    };
-
-    const dummyEvent3 = {
-        eid: 'eid3',
-        unid: 'fd8fc3d3-824a-476b-9207-be5483ec1459',
-        rsoid: '413d0363-c62b-4da0-bbc0-0303c319521d',
-        uid: 'c2d22b9f-d07b-4399-ac31-221cd264de49',
-        name: 'RSO KnightHacks Event',
-        description: 'RSO event description.',
-        category: 'Networking',
-        time: '9:00PM',
-        date: new Date('5/12/2022'),
-        location: {
-            lat: 28.59267434926866,
-            lng: -81.20291310732539,
-        },
-        contactPhone: '111-222-3335',
-        contactEmail: 'notareal3@email.com',
-        visibility: RSO,
-        published: true,
-        rsoName: 'Knight Hacks',
-        uniName: 'University of Tentral Torida',
-    };
-
-    const dummyEvent4 = {
-        eid: 'eid4',
-        unid: 'fd8fc3d3-824a-476b-9207-be5483ec1459',
-        rsoid: '413d0363-c62b-4da0-bbc0-0303c319521d',
-        uid: 'c2d22b9f-d07b-4399-ac31-221cd264de49',
-        name: 'Unpublished Public KnightHacks Event',
-        description: 'Unpublished event description.',
-        category: 'Casual',
-        time: '10:00PM',
-        date: new Date('5/16/2022'),
-        location: {
-            lat: 28.59267434926866,
-            lng: -81.20291310732539,
-        },
-        contactPhone: '111-222-3336',
-        contactEmail: 'notareal4@email.com',
-        visibility: PUBLIC,
-        published: false,
-        rsoName: 'Knight Hacks',
-        uniName: 'University of Tentral Torida',
-    };
-
-    const dummyEventList = [];
-    dummyEventList.push(dummyEvent1);
-    dummyEventList.push(dummyEvent2);
-    dummyEventList.push(dummyEvent3);
-    dummyEventList.push(dummyEvent4);
-
     const dateValid = () => !date || date.toString() === 'Invalid Date';
 
-    const refreshEvents = () => {
+    const refreshEvents = async () => {
         // Populate allEvents
-        // TODO once endpoint is created
-        // TODO: add rso name property to all events with a valid rsoid
-        // TODO: if date is valid, discard any events before date
-        // TODO: attach rsoName to each event
-        console.log('TODO');
+        let res;
+        if (userData)
+            res = await axios.get(
+                `http://localhost:1433/events/?uid=${userData.uid}&all`
+            );
+        else res = await axios.get(`http://localhost:1433/events/?all`);
+
+        if (res.status === 200) {
+            for (let ievent of res.data.events) {
+                if (ievent.unid !== null) {
+                    for (let iuni of uniList) {
+                        if (iuni.unid === ievent.unid) {
+                            ievent.uniName = iuni.name;
+                            break;
+                        }
+                    }
+                } else if (ievent.rsoid !== null) {
+                    for (let irso of rsoList) {
+                        if (irso.rsoid === ievent.rsoid) {
+                            ievent.rsoName = irso.name;
+                            break;
+                        }
+                    }
+                }
+                ievent.datetime = new Date(ievent.datetime);
+            }
+            setEventList(res.data.events);
+        } else console.error(res.data);
     };
 
     const getRSOs = async () => {
@@ -176,7 +106,6 @@ const Home = (props) => {
 
         if (userData) {
             // Get list of RSOs the user has joined
-            console.log(`http://localhost:1433/rsos/?uid=${userData.uid}`);
             res = await axios.get(
                 `http://localhost:1433/rsos/?uid=${userData.uid}`
             );
@@ -217,6 +146,10 @@ const Home = (props) => {
         getUniversities();
     }, [userData]);
 
+    useEffect(() => {
+        refreshEvents();
+    }, [checkboxes, date, userData]);
+
     return (
         <Box sx={{ mt: 2, ml: 2 }}>
             <form onSubmit={(e) => e.preventDefault()} autoComplete="false">
@@ -240,12 +173,14 @@ const Home = (props) => {
                             <FormControlLabel
                                 control={
                                     <Checkbox
-                                        checked={publicOnly}
-                                        onChange={(e, newValue) => {
-                                            setPublicOnly(newValue);
-                                            setMyUniOnly(false);
-                                            setJoinedRSOsOnly(false);
-                                        }}
+                                        checked={checkboxes.public}
+                                        onChange={(e, newValue) =>
+                                            setCheckboxes({
+                                                public: !checkboxes.public,
+                                                uni: false,
+                                                rso: false,
+                                            })
+                                        }
                                     />
                                 }
                                 label="Public Events Only"
@@ -253,12 +188,14 @@ const Home = (props) => {
                             <FormControlLabel
                                 control={
                                     <Checkbox
-                                        checked={myUniOnly}
-                                        onChange={(e, newValue) => {
-                                            setPublicOnly(false);
-                                            setMyUniOnly(newValue);
-                                            setJoinedRSOsOnly(false);
-                                        }}
+                                        checked={checkboxes.uni}
+                                        onChange={(e, newValue) =>
+                                            setCheckboxes({
+                                                public: false,
+                                                uni: !checkboxes.uni,
+                                                rso: false,
+                                            })
+                                        }
                                     />
                                 }
                                 label="My University Only"
@@ -266,12 +203,14 @@ const Home = (props) => {
                             <FormControlLabel
                                 control={
                                     <Checkbox
-                                        checked={joinedRSOsOnly}
-                                        onChange={(e, newValue) => {
-                                            setPublicOnly(false);
-                                            setMyUniOnly(false);
-                                            setJoinedRSOsOnly(newValue);
-                                        }}
+                                        checked={checkboxes.rso}
+                                        onChange={(e, newValue) =>
+                                            setCheckboxes({
+                                                public: false,
+                                                uni: false,
+                                                rso: !checkboxes.rso,
+                                            })
+                                        }
                                     />
                                 }
                                 label="Joined RSOs Only"
@@ -281,23 +220,22 @@ const Home = (props) => {
                 </Stack>
             </form>
             <Grid container spacing={2}>
-                {dummyEventList.map((cardEvent) => {
-                    if (userData) {
-                        if (!cardEvent.published) return null;
-                        if (publicOnly && cardEvent.visibility !== PUBLIC)
-                            return null;
-                        if (myUniOnly && cardEvent.unid !== userData.unid)
-                            return null;
-                        if (joinedRSOsOnly) {
-                            let isJoined = false;
-                            for (let rso of joinedRSOList)
-                                if (rso.rsoid === cardEvent.rsoid)
-                                    isJoined = true;
-                            if (!isJoined) return null;
+                {eventList.map((cardEvent) => {
+                    if (!cardEvent.published) return null;
+                    if (date && cardEvent.datetime < date) return null;
+                    if (checkboxes.public) {
+                        if (cardEvent.unid || cardEvent.rsoid) return null;
+                    } else if (checkboxes.uni) {
+                        if (cardEvent.unid !== userData.unid) return null;
+                    } else if (checkboxes.rso) {
+                        let found = false;
+                        for (let irso of joinedRSOList) {
+                            if (cardEvent.rsoid === irso.rsoid) {
+                                found = true;
+                                break;
+                            }
                         }
-                        if (date && cardEvent.date < date) return null;
-                    } else {
-                        if (cardEvent.visibility !== PUBLIC) return null;
+                        if (!found) return null;
                     }
 
                     return (
@@ -317,6 +255,7 @@ const Home = (props) => {
                                 setModalOp={setModalOp}
                                 setModalOpen={setModalOpen}
                                 userData={userData}
+                                setSnackbar={setSnackbar}
                             />
                         </Grid>
                     );
@@ -329,7 +268,7 @@ const Home = (props) => {
                 mode={modalOp}
                 joinedRSOs={joinedRSOList}
                 setSnackbar={setSnackbar}
-                refreshSearch={refreshEvents}
+                refreshEvents={refreshEvents}
                 userData={userData}
             />
         </Box>

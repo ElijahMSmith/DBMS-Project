@@ -57,7 +57,6 @@ router.post('/', async (req, res) => {
             });
         })
         .catch((err) => {
-            console.log(err);
             return res.status(500).send({ error: err });
         });
 });
@@ -170,7 +169,7 @@ router.delete('/membership', async (req, res) => {
             result = await pool.query(query);
 
             // Check that a change was made
-            if (result.rowsAffected > 0) return res.status(200).send();
+            if (result.rowsAffected.length > 0) return res.status(200).send();
 
             // Otherwise...
             return res

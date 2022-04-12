@@ -11,7 +11,6 @@ router.post('/', async(req, res) => {
         numStudents
     } = req.body;
     // Edit / Create a university
-    console.log(unid);
 
     const connectionPromise = sql.connect(config);
     return connectionPromise.then(async (pool) => {

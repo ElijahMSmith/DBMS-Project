@@ -8,23 +8,18 @@ import {
     Card,
     ButtonBase,
 } from '@mui/material';
+import { format, parse } from 'fecha';
+import { handleError } from '..';
+
+const DefaultLocation = { lat: 28.602307480049603, lng: -81.20016915689729 };
+const DefaultZoom = 10;
 
 //const CREATE = 1;
 const EDIT = 2;
 const VIEW = 3;
 //const CLOSED = 4;
 
-function getFormattedDate(date) {
-    var year = date.getFullYear();
-
-    var month = (1 + date.getMonth()).toString();
-    month = month.length > 1 ? month : '0' + month;
-
-    var day = date.getDate().toString();
-    day = day.length > 1 ? day : '0' + day;
-
-    return month + '/' + day + '/' + year;
-}
+const dtFormatString = 'YYYY-MM-DD @ HH:mm:ss';
 
 const EventCard = (props) => {
     const {
@@ -34,41 +29,42 @@ const EventCard = (props) => {
         setModalOp,
         setModalOpen,
         userData,
+        setSnackbar,
     } = props;
 
     const {
         eid,
-        unid,
-        uniName,
-        rsoid,
-        rsoName,
-        uid,
-        name,
-        description,
-        category,
-        time,
-        date,
-        location,
-        contactPhone,
-        contactEmail,
-        visibility,
-        published,
+        uniName = '',
+        unid = null,
+        rsoid = null,
+        rsoName = '',
+        uid = '',
+        name = '',
+        category = '',
+        datetime = new Date(),
+        location = '',
     } = event;
 
-    const expired = new Date() > new Date(date);
+    const expired = new Date() > datetime;
     const owned = userData ? userData.uid === uid : false;
 
     const deleteEvent = () => {
-        //TODO
-
-        refreshEvents();
+        axios
+            .delete(`http://localhost:1433/events`, { data: { eid } })
+            .then((res) => {
+                setSnackbar(true, 'success', 'Successfully deleted event!');
+                refreshEvents();
+            })
+            .catch((err) => {
+                handleError(err);
+            });
     };
 
     return (
         <Card
             sx={{
                 width: 400,
-                height: 220,
+                height: 265,
                 outline: expired
                     ? '2px solid grey'
                     : owned
@@ -81,26 +77,44 @@ const EventCard = (props) => {
                     variant="h4"
                     sx={{
                         textAlign: 'center',
+                        mb: 2,
                     }}
                     noWrap
                 >
                     {name}
                 </Typography>
+                {rsoid !== null ? (
+                    <Typography sx={{ textAlign: 'center', mt: 1 }} noWrap>
+                        Hosted By: {rsoName}
+                    </Typography>
+                ) : unid !== null ? (
+                    <Typography sx={{ textAlign: 'center', mt: 1 }} noWrap>
+                        Hosted By: {uniName}
+                    </Typography>
+                ) : (
+                    <Typography sx={{ textAlign: 'center', mt: 1 }} noWrap>
+                        Public Event
+                    </Typography>
+                )}
 
                 <Typography sx={{ textAlign: 'center', mt: 1 }} noWrap>
-                    Hosted By: {rsoid === '' ? uniName : rsoName}
+                    {format(datetime, dtFormatString)}
                 </Typography>
-
                 <Typography sx={{ textAlign: 'center', mt: 1 }} noWrap>
-                    {getFormattedDate(date)}
+                    Location: {location}
                 </Typography>
-
                 <Typography sx={{ textAlign: 'center', mt: 1 }} noWrap>
-                    {time}
+                    Category: {category}
                 </Typography>
             </CardContent>
             <CardActions>
-                <Box sx={{ textAlign: 'center', width: '100%' }}>
+                <Box
+                    sx={{
+                        textAlign: 'center',
+                        width: '100%',
+                        mt: 2,
+                    }}
+                >
                     <Button
                         variant="outlined"
                         size="small"

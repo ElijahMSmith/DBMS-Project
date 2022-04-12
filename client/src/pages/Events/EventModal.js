@@ -12,15 +12,20 @@ import {
     TextField,
     Typography,
 } from '@mui/material';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import ObjListAutocomplete from '../../components/ObjListAutocomplete';
-import { handleError } from '../..';
 import CategoryAutocomplete from '../../components/CategoryAutocomplete';
+import { Map } from 'pigeon-maps';
+import { osm } from 'pigeon-maps/providers';
+import { format } from 'fecha';
+import axios from 'axios';
+import { handleError } from '../..';
 
 // Default to UCF area
-const DefaultLocation = { lat: 28.602307480049603, lng: -81.20016915689729 };
-const DefaultZoom = 10;
+const DefaultLocation = [28.602307480049603, -81.20016915689729];
 
 // Event Visibility
 const PUBLIC = 1;
@@ -55,16 +60,14 @@ const style = {
     p: 4,
 };
 
-const formatDate = (date) => {
-    var year = date.getFullYear();
+const dtDisplayFormat = 'YYYY-MM-DD @ HH:mm:ss';
 
-    var month = (1 + date.getMonth()).toString();
-    month = month.length > 1 ? month : '0' + month;
+const dtValid = (dt) => {
+    return dt != 'Invalid Date';
+};
 
-    var day = date.getDate().toString();
-    day = day.length > 1 ? day : '0' + day;
-
-    return month + '/' + day + '/' + year;
+const formatDate = (dateTime) => {
+    return dateTime.toISOString().slice(0, 19).replace('T', ' ');
 };
 
 const steps = ['Event Info', 'Event Details'];
@@ -83,48 +86,55 @@ const EventModal = (props) => {
 
     const {
         eid = '',
-        unid = '',
+        unid,
         uniName = '',
-        rsoid = '',
+        rsoid,
         rsoName = '',
-        uid = '',
+        uid,
         name = '',
         description = '',
         category = '',
-        time = '',
-        date = new Date(),
-        location = DefaultLocation,
+        datetime = new Date(),
+        location = '',
+        lat = DefaultLocation[0],
+        lng = DefaultLocation[1],
         contactPhone = '',
         contactEmail = '',
-        visibility = PUBLIC,
         published = false,
+        approved = false,
     } = event;
 
     const [eventName, setEventName] = useState(name);
     const [eventDescription, setEventDescription] = useState(description);
     const [eventCategory, setEventCategory] = useState(category);
-    const [eventVisibility, setEventVisibility] = useState(visibility);
+    const [eventVisibility, setEventVisibility] = useState(PUBLIC);
     const [eventRSO, setEventRSO] = useState(null);
-    const [eventDate, setEventDate] = useState(date);
-    const [eventTime, setEventTime] = useState(time);
+    const [eventDateTime, setEventDateTime] = useState(datetime);
     const [eventLocation, setEventLocation] = useState(location);
+    const [eventLat, setEventLat] = useState(lat);
+    const [eventLng, setEventLng] = useState(lng);
     const [eventContactPhone, setEventContactPhone] = useState(contactPhone);
     const [eventContactEmail, setEventContactEmail] = useState(contactEmail);
     const [page, setPage] = useState(0);
+    const [zoom, setZoom] = useState(15);
+    const [center, setCenter] = useState(DefaultLocation);
 
     useEffect(() => {
         setEventName(name);
         setEventDescription(description);
         setEventCategory(category);
-        setEventDate(date);
-        setEventTime(time);
+        setEventDateTime(datetime);
         setEventLocation(location);
+        setEventLat(lat);
+        setEventLng(lng);
         setEventContactPhone(contactPhone);
         setEventContactEmail(contactEmail);
-        setEventVisibility(visibility);
+        setEventVisibility(PUBLIC);
         setPage(0);
+        setCenter([lat, lng]);
+        setZoom(15);
 
-        if (rsoid === '') setEventRSO(null);
+        if (!rsoid) setEventRSO(null);
         else {
             for (let irso of joinedRSOs) {
                 if (irso.rsoid === rsoid) {
@@ -137,23 +147,37 @@ const EventModal = (props) => {
 
     const validatePage = (pnum) => {
         if (pnum === 0) {
-            if (eventVisibility === RSO && eventRSO === null) return false;
             if (
                 eventName === '' ||
                 eventDescription === '' ||
-                eventCategory === ''
+                eventCategory === '' ||
+                !dtValid(eventDateTime)
             )
                 return false;
+            if (mode === CREATE) {
+                if (
+                    typeof eventVisibility !== 'number' ||
+                    eventVisibility < 1 ||
+                    eventVisibility > 3
+                )
+                    return false;
+
+                if (eventVisibility === UNI && unid === '') return false;
+                if (eventVisibility === RSO && eventRSO === null) return false;
+            }
+            return true;
+        } else {
+            //pnum === 1
             if (
-                typeof eventVisibility !== 'number' ||
-                eventVisibility < 1 ||
-                eventVisibility > 3
+                eventContactPhone === '' ||
+                eventContactEmail === '' ||
+                !dtValid(eventDateTime) ||
+                eventLocation === '' ||
+                isNaN(eventLat) ||
+                isNaN(eventLng)
             )
                 return false;
             return true;
-        } else {
-            // TODO: validate page 1
-            return false;
         }
     };
 
@@ -161,10 +185,75 @@ const EventModal = (props) => {
         if (page === 0) {
             if (direction === PREV) return;
             if (validatePage(0)) setPage(1);
-        } else { // page === 1
-            if (direction === PREV) setPage(0);
-            else if(validatePage(0) && validatePage(1)){
-                // TODO: submit event for editing/creation
+        } else {
+            // page === 1
+            if (direction === PREV) {
+                setPage(0);
+                return;
+            }
+            if (validatePage(0) && validatePage(1)) {
+                if (mode === EDIT) {
+                    axios
+                        .post(`http://localhost:1433/events/`, {
+                            eid,
+                            uid,
+                            unid,
+                            rsoid,
+                            name: eventName,
+                            description: eventDescription,
+                            category: eventCategory,
+                            datetime: formatDate(eventDateTime),
+                            location: eventLocation,
+                            lat: eventLat,
+                            lng: eventLng,
+                            contactPhone: eventContactPhone,
+                            contactEmail: eventContactEmail,
+                            published,
+                            approved,
+                        })
+                        .then((res) => {
+                            setModalOpen(false);
+                            setSnackbar(
+                                true,
+                                'success',
+                                'Edits saved successfully!'
+                            );
+                            refreshEvents();
+                        })
+                        .catch((err) => handleError(err));
+                } else if (mode === CREATE) {
+                    axios
+                        .post(`http://localhost:1433/events/`, {
+                            uid: userData.uid,
+                            unid:
+                                eventVisibility === UNI
+                                    ? userData.unid
+                                    : undefined,
+                            rsoid:
+                                eventVisibility === RSO
+                                    ? eventRSO.rsoid
+                                    : undefined,
+                            name: eventName,
+                            description: eventDescription,
+                            category: eventCategory,
+                            datetime: formatDate(eventDateTime),
+                            location: eventLocation,
+                            lat: eventLat,
+                            lng: eventLng,
+                            contactPhone: eventContactPhone,
+                            contactEmail: eventContactEmail,
+                            published:
+                                eventVisibility === PUBLIC ? false : true,
+                            approved: eventVisibility === PUBLIC ? false : true,
+                        })
+                        .then((res) => {
+                            // TODO
+                            refreshEvents();
+                        })
+                        .catch((err) => {
+                            handleError(err);
+                        });
+                }
             }
         }
     };
@@ -176,26 +265,29 @@ const EventModal = (props) => {
                     <>
                         <Typography
                             variant="h4"
-                            sx={{ textAlign: 'center', mt: 3, mb: 6 }}
+                            sx={{ textAlign: 'center', mt: 3, mb: 5 }}
                         >
                             {eventName}
                         </Typography>
                         <Typography sx={{ my: 1, textAlign: 'center' }}>
                             {eventDescription}
                         </Typography>
-                        <Typography sx={{ mt: 1, mb: 6, textAlign: 'center' }}>
-                            {formatDate(eventDate) + ' @ ' + eventTime}
+                        <Typography sx={{ mt: 1, mb: 5, textAlign: 'center' }}>
+                            {format(eventDateTime, dtDisplayFormat)}
                         </Typography>
-                        <Typography sx={{ my: 1, textAlign: 'center' }}>
-                            <u>Hosted By</u>:{' '}
-                            {eventVisibility !== RSO ? uniName : rsoName}
-                        </Typography>
-                        <Typography sx={{ my: 1, textAlign: 'center' }}>
-                            <u>Location</u>:{' '}
-                            {eventLocation
-                                ? eventLocation.lat + ', ' + eventLocation.lng
-                                : ''}
-                        </Typography>
+                        {rsoid ? (
+                            <Typography sx={{ my: 1, textAlign: 'center' }}>
+                                <u>Hosted By</u>: {rsoName}
+                            </Typography>
+                        ) : unid ? (
+                            <Typography sx={{ my: 1, textAlign: 'center' }}>
+                                <u>Hosted By</u>: {uniName}
+                            </Typography>
+                        ) : (
+                            <Typography sx={{ my: 1, textAlign: 'center' }}>
+                                Open to Public
+                            </Typography>
+                        )}
                         <Typography sx={{ my: 1, textAlign: 'center' }}>
                             <u>Category</u>: {eventCategory}
                         </Typography>
@@ -204,13 +296,21 @@ const EventModal = (props) => {
                             {eventContactEmail + ', ' + eventContactPhone}
                         </Typography>
                         <Typography sx={{ my: 1, textAlign: 'center' }}>
-                            <u>Visibility</u>:{' '}
-                            {eventVisibility === PUBLIC
-                                ? 'Everyone'
-                                : eventVisibility === UNI
-                                ? uniName + ' Students'
-                                : rsoName + ' Members'}
+                            <u>Location</u>: {eventLocation}
                         </Typography>
+                        <Typography sx={{ my: 1, textAlign: 'center' }}>
+                            <u>Coordinates</u>: {lat + ', ' + lng}
+                        </Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <Map
+                                provider={osm}
+                                height={300}
+                                center={center}
+                                zoom={zoom}
+                                touchEvents={false}
+                                mouseEvents={false}
+                            />
+                        </Box>
                     </>
                 ) : (
                     <Box>
@@ -250,100 +350,161 @@ const EventModal = (props) => {
                                     helperText={`${eventDescription.length}/512`}
                                     error={eventDescription.length === 0}
                                 />
+                                <CategoryAutocomplete
+                                    value={
+                                        eventCategory === ''
+                                            ? null
+                                            : eventCategory
+                                    }
+                                    setCategory={setEventCategory}
+                                    width="100%"
+                                />
+
+                                {mode === CREATE ? (
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                        }}
+                                    >
+                                        <ObjListAutocomplete
+                                            allOptions={visibilityOptions}
+                                            value={
+                                                visibilityOptions[
+                                                    eventVisibility === PUBLIC
+                                                        ? 0
+                                                        : eventVisibility ===
+                                                          UNI
+                                                        ? 1
+                                                        : 2
+                                                ]
+                                            }
+                                            setOption={(newValue) =>
+                                                setEventVisibility(
+                                                    newValue.value
+                                                )
+                                            }
+                                            label="Visibility"
+                                            width="45%"
+                                            defaultValue={PUBLIC}
+                                        />
+                                        {eventVisibility === UNI ? (
+                                            // Render disabled field with user's university
+                                            <TextField
+                                                required
+                                                label="University"
+                                                variant="outlined"
+                                                value={uniName}
+                                                sx={{ width: '45%' }}
+                                                error={uniName === ''}
+                                                disabled
+                                            />
+                                        ) : eventVisibility === RSO ? (
+                                            // Render RSO picker
+                                            <ObjListAutocomplete
+                                                allOptions={joinedRSOs}
+                                                value={eventRSO}
+                                                setOption={setEventRSO}
+                                                label="RSO"
+                                                width="45%"
+                                            />
+                                        ) : null}
+                                    </Box>
+                                ) : null}
+
+                                <LocalizationProvider
+                                    dateAdapter={AdapterDateFns}
+                                >
+                                    <DateTimePicker
+                                        label="Date and Time"
+                                        value={eventDateTime}
+                                        onChange={(newValue) =>
+                                            setEventDateTime(newValue)
+                                        }
+                                        renderInput={(params) => (
+                                            <TextField {...params} />
+                                        )}
+                                    />
+                                </LocalizationProvider>
+                            </Stack>
+                        ) : (
+                            // Page === 1
+                            <Stack spacing={3}>
+                                <TextField
+                                    required
+                                    label="Location Name"
+                                    variant="outlined"
+                                    value={eventLocation}
+                                    onChange={(e) =>
+                                        setEventLocation(e.target.value)
+                                    }
+                                    inputProps={{ maxLength: 64 }}
+                                    sx={{ width: '100%' }}
+                                    helperText={`${eventLocation.length}/64`}
+                                    error={eventLocation.length === 0}
+                                />
                                 <Box
                                     sx={{
                                         display: 'flex',
                                         justifyContent: 'space-between',
                                     }}
                                 >
-                                    <CategoryAutocomplete
-                                        value={
-                                            eventCategory === ''
-                                                ? null
-                                                : eventCategory
-                                        }
-                                        setCategory={setEventCategory}
-                                        width="45%"
-                                    />
-                                    <ObjListAutocomplete
-                                        allOptions={visibilityOptions}
-                                        value={
-                                            visibilityOptions[
-                                                eventVisibility === PUBLIC
-                                                    ? 0
-                                                    : eventVisibility === UNI
-                                                    ? 1
-                                                    : 2
-                                            ]
-                                        }
-                                        setOption={(newValue) =>
-                                            setEventVisibility(newValue.value)
-                                        }
-                                        label="Visibility"
-                                        width="45%"
-                                        defaultValue={PUBLIC}
-                                    />
-                                </Box>
-
-                                {eventVisibility === PUBLIC ||
-                                eventVisibility === UNI ? (
-                                    // Render disabled field with user's university
-
                                     <TextField
                                         required
-                                        label="University"
+                                        label="Contact Phone Number"
                                         variant="outlined"
-                                        value={uniName}
-                                        sx={{ width: '100%' }}
-                                        error={uniName === ''}
-                                        disabled
+                                        value={eventContactPhone}
+                                        onChange={(e) =>
+                                            setEventContactPhone(e.target.value)
+                                        }
+                                        inputProps={{ maxLength: 16 }}
+                                        sx={{ width: '45%' }}
+                                        helperText={`${eventContactPhone.length}/16`}
+                                        error={eventContactPhone.length === 0}
                                     />
-                                ) : (
-                                    // Render RSO picker
-                                    <ObjListAutocomplete
-                                        allOptions={joinedRSOs}
-                                        value={eventRSO}
-                                        setOption={setEventRSO}
-                                        label="RSO"
-                                        width="100%"
+                                    <TextField
+                                        required
+                                        label="Contact Email"
+                                        variant="outlined"
+                                        value={eventContactEmail}
+                                        onChange={(e) =>
+                                            setEventContactEmail(e.target.value)
+                                        }
+                                        inputProps={{ maxLength: 64 }}
+                                        sx={{ width: '45%' }}
+                                        helperText={`${eventContactEmail.length}/64`}
+                                        error={eventContactEmail.length === 0}
                                     />
-                                )}
-
-                                {/* Name, description, category, visibility,
-                                RSO/UNI picker based on visibility */}
-                            </Stack>
-                        ) : (
-                            // Page === 1
-                            /*
-                        eid CHAR(36) PRIMARY KEY,
-                        uid CHAR(36),
-                        unid CHAR(36),
-                        rsoid CHAR(36),
-                        name VARCHAR(36),
-                        description VARCHAR(512),
-                        category VARCHAR(36),
-                        time TIME,
-                        date DATE,
-                        location VARCHAR(64),
-                        contactPhone VARCHAR(16),
-                                contactEmail VARCHAR(64),*/
-                            // Date picker/Time picker one line
-                            // Contact email/phone one line
-                            // Location picker
-                            <Stack spacing={3}>
+                                </Box>
                                 <TextField
-                                    required
-                                    label="Event Name"
-                                    variant="outlined"
-                                    value={name}
-                                    onChange={(e) =>
-                                        setEventName(e.target.value)
-                                    }
-                                    inputProps={{ maxLength: 40 }}
+                                    disabled
+                                    value={eventLat + ', ' + eventLng}
                                     sx={{ width: '100%' }}
-                                    helperText={`${name.length}/40`}
-                                    error={name.length === 0}
                                 />
+                                <Box
+                                    sx={{
+                                        width: '100%',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                    <Map
+                                        provider={osm}
+                                        height={300}
+                                        center={center}
+                                        zoom={zoom}
+                                        onBoundsChanged={({ center, zoom }) => {
+                                            setCenter(center);
+                                            setZoom(zoom);
+                                        }}
+                                        mouseEvents
+                                        onClick={(data) => {
+                                            setEventLat(data.latLng[0]);
+                                            setEventLng(data.latLng[1]);
+                                            setCenter(data.latLng);
+                                        }}
+                                    />
+                                </Box>
                             </Stack>
                         )}
 

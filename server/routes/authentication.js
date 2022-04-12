@@ -25,7 +25,6 @@ router.post('/register', async (req, res) => {
             // Next: Generate the user's uuid
             const newUserID = uuidv4();
 
-            console.log({ newUserID, username, email, password, unid });
             // Push this user information into our database
             request = `INSERT INTO Users VALUES ('${newUserID}', '${username}', '${email}', '${password}', '${unid}', 1)`;
             result = await pool.query(request);
