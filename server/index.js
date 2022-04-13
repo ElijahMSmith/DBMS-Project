@@ -16,6 +16,7 @@ const authRoutes = require('./routes/authentication');
 const uniRoutes = require('./routes/university');
 const rsoRoutes = require('./routes/rso');
 const eventRoutes = require('./routes/events');
+const feedbackRoutes = require('./routes/feedback');
 
 // Import tables
 const initializeTables = require('./tables/tables');
@@ -26,6 +27,7 @@ app.use('/auth', authRoutes);
 app.use('/universities', uniRoutes);
 app.use('/rsos', rsoRoutes);
 app.use('/events', eventRoutes);
+app.use('/feedback', feedbackRoutes);
 
 sql.connect(config)
     .then(async (pool) => {

@@ -226,15 +226,46 @@ router.get('/', async (req, res) => {
 
 router.get('/details', async (req, res) => {
     // Get details about a specific event
-    // TODO: Include information about comments + rating
+    const {
+        eid
+    } = req.query;
+
+    if(!eid)
+        return res.status(406).send({"error": "No event ID provided"});
+
+    return sql.connect(config).then(async(pool) => {
+        // Get the event's information
+        let request = `SELECT * FROM Events WHERE eid='${eid}'`;
+        let results = await pool.query(request);
+
+        if(results.recordset.length <= 0)
+            return res.status(404).send({"error": "Event information not found"});
+
+        // Store our event information
+        const eventInformation = results.recordset[0];
+        
+        // Get ratings
+        request = `SELECT AVG(Cast(numStars AS FLOAT)) AS avgRating FROM Ratings WHERE eid='${eid}'`;
+        results = await pool.query(request);
+
+        eventInformation["averageRating"] = results.recordset[0]["avgRating"] ?? 0;
+
+        // Get comments
+        request = `SELECT c.cid, c.uid, c.description, c.created, u.username FROM Comments c, CommentsOnEvents coe, Users u WHERE c.cid=coe.cid AND coe.eid='${eid}' AND coe.cid=c.cid AND c.uid=u.uid ORDER BY created asc`
+        results = await pool.query(request);
+
+        eventInformation["comments"] = results.recordset;
+
+        return res.status(200).send(eventInformation);
+    });
 });
 
 router.get('/queue', async (req, res) => {
     // Get the queue of events to approve
-});
-
-router.post('/approve', async (req, res) => {
-    // POST - Approve a given event
+    return sql.connect(config).then(async(pool) => {
+        const request = `SELECT * FROM Events WHERE approved='FALSE'`
+        return (await pool.query(request)).recordset;
+    });
 });
 
 module.exports = router;
