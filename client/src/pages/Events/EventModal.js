@@ -2,8 +2,6 @@ import MapPicker from 'react-google-map-picker';
 import {
     Box,
     Button,
-    Grid,
-    Grow,
     Modal,
     Stack,
     Step,
@@ -11,14 +9,13 @@ import {
     Stepper,
     TextField,
     Typography,
+    Rating,
 } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
+import EditIcon from '@mui/icons-material/Edit';
 import {
     EmailIcon,
     EmailShareButton,
-    FacebookIcon,
-    FacebookShareButton,
-    LinkedinIcon,
-    LinkedinShareButton,
     TwitterIcon,
     TwitterShareButton,
 } from 'react-share';
@@ -91,6 +88,7 @@ const EventModal = (props) => {
         setSnackbar,
         refreshEvents,
         userData,
+        reviewData = {},
     } = props;
 
     const {
@@ -127,6 +125,8 @@ const EventModal = (props) => {
     const [page, setPage] = useState(0);
     const [zoom, setZoom] = useState(15);
     const [center, setCenter] = useState(DefaultLocation);
+    const [rating, setRating] = useState(reviewData.rating ?? 1);
+    const [comment, setComment] = useState(reviewData.comment ?? 1);
 
     useEffect(() => {
         setEventName(name);
@@ -323,6 +323,30 @@ const EventModal = (props) => {
                                 zoom={zoom}
                                 touchEvents={false}
                                 mouseEvents={false}
+                            />
+                        </Box>
+                        <Typography>My Review:</Typography>
+                        <Box sx={{ width: '100%' }}>
+                            <TextField
+                                value={comment}
+                                label="Comment"
+                                variant="outlined"
+                                onChange={(e) => setComment(e.target.value)}
+                                inputProps={{ maxLength: 36 }}
+                                sx={{ width: '100%' }}
+                                helperText={`${eventName.length}/36`}
+                                error={eventName.length === 0}
+                            />
+                            <IconButton aria-label="edit">
+                                <EditIcon />
+                            </IconButton>
+                            <Typography component="legend">Rating</Typography>
+                            <Rating
+                                name="simple-controlled"
+                                value={value}
+                                onChange={(event, newValue) => {
+                                    setValue(newValue);
+                                }}
                             />
                         </Box>
                         <Box
