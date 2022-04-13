@@ -92,6 +92,8 @@ function initializeTables(pool) {
                         published BIT,
                         approved BIT,
                         datetime DATETIME,
+                        lat VARCHAR(20),
+                        lng VARCHAR(20),
                         FOREIGN KEY (uid) REFERENCES Users,
                         FOREIGN KEY (unid) REFERENCES Universities,
                         FOREIGN KEY (rsoid) REFERENCES RSOs,

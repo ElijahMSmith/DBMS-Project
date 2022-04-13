@@ -10,7 +10,8 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import UniversityAutocomplete from '../../components/UniversityAutocomplete';
+import ObjListAutocomplete from '../../components/ObjListAutocomplete';
+import { handleError } from '../..';
 
 const CREATE = 1;
 const EDIT = 2;
@@ -38,6 +39,7 @@ const RSOmodal = (props) => {
         setSnackbar,
         refreshSearch,
         userData,
+        setUserData,
     } = props;
 
     // Fixed fields, not editable by user
@@ -59,26 +61,24 @@ const RSOmodal = (props) => {
     const [owner, setOwner] = useState(null);
     const [photoUrl, setPhotoUrl] = useState('');
 
-    const handleError = (error) => {
-        if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.headers);
-        } else if (error.request) {
-            // The request was made but no response was received
-            // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-            // http.ClientRequest in node.js
-            console.log(error.request);
-        } else {
-            // Something happened in setting up the request that triggered an Error
-            console.log('Error', error.message);
-        }
+    const upgradePerms = () => {
+        const newUserData = {
+            uid: userData.uid,
+            email: userData.uid,
+            username: userData.username,
+            unid: university.unid,
+            permLevel: 2,
+        };
+        axios
+            .post('http://localhost:1433/auth/update', newUserData)
+            .then((resp) => {
+                setUserData(newUserData);
+                console.log('Upgraded perms to admin');
+            })
+            .catch((err) => handleError(err));
     };
 
     const buildNewRSO = () => {
-        console.log({ university, name, description, memberEmails });
         if (
             !university ||
             name === '' ||
@@ -96,7 +96,7 @@ const RSOmodal = (props) => {
             numMembers,
         };
 
-        console.log('Mode: ' + mode);
+        console.log(newRSO);
 
         if (mode === EDIT) {
             axios
@@ -161,13 +161,10 @@ const RSOmodal = (props) => {
                             numMembers: 0,
                         })
                         .then((res) => {
-                            console.log('returned', res.data);
                             const newid = res.data.rsoid;
 
                             const uidList = [userData.uid];
                             for (let iuser of uidUserList) uidList.push(iuser);
-
-                            console.log(uidList);
 
                             axios
                                 .post('http://localhost:1433/rsos/membership', {
@@ -181,6 +178,7 @@ const RSOmodal = (props) => {
                                         'success',
                                         'RSO successfully created!'
                                     );
+                                    upgradePerms();
                                     refreshSearch();
                                 })
                                 .catch((err) => {
@@ -321,10 +319,10 @@ const RSOmodal = (props) => {
                             error={description.length === 0}
                         />
 
-                        <UniversityAutocomplete
+                        <ObjListAutocomplete
                             value={university}
-                            setUniversity={setUniversity}
-                            allUniversities={allUniversities}
+                            allOptions={allUniversities}
+                            setOption={setUniversity}
                             width="100%"
                             disabled
                         />
