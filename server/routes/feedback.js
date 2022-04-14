@@ -65,6 +65,49 @@ router.post('/comment', async (req, res) => {
         });
 });
 
+router.delete('/comment', async (req, res) => {
+    // Create / edit a comment for an event
+    let { cid } = req.body;
+
+    return sql
+        .connect(config)
+        .then(async (pool) => {
+            // Creating a new comment requires uid, description
+            if (cid) {
+                let request = `SELECT * FROM CommentsOnEvents WHERE cid='${cid}'`;
+                let result = await pool.query(request);
+                if (result.recordset.length > 0) {
+                    request = `DELETE FROM CommentsOnEvents WHERE cid='${cid}'`;
+                    result = await pool.query(request);
+                    if (result.rowsAffected <= 0)
+                        return res.status(500).send({
+                            error: 'Failed to delete comment with that cid from CommentsOnEvents',
+                        });
+
+                    request = `DELETE FROM Comments WHERE cid='${cid}'`;
+                    result = await pool.query(request);
+                    if (result.rowsAffected <= 0)
+                        return res.status(500).send({
+                            error: 'Failed to delete comment with that cid from Comments',
+                        });
+
+                    // return a positive result
+                    return res.status(200).send({ deleted: true });
+                }
+
+                // If there was no comment, that is fine
+                return res.status(200).send({ deleted: false });
+            }
+
+            return res.status(500).send({
+                error: 'cid is required to delete a comment.',
+            });
+        })
+        .catch((err) => {
+            return res.status(500).send({ error: err });
+        });
+});
+
 router.post('/rating', async (req, res) => {
     // Create / edit a rating for an event
     const { eid, uid, numStars } = req.body;
@@ -101,6 +144,34 @@ router.post('/rating', async (req, res) => {
                     .status(200)
                     .send({ message: 'Rating created successfully' });
             }
+        })
+        .catch((err) => {
+            return res.status(500).send({ error: err });
+        });
+});
+
+router.delete('/rating', async (req, res) => {
+    // Create / edit a rating for an event
+    const { eid, uid } = req.body;
+
+    return sql
+        .connect(config)
+        .then(async (pool) => {
+            let request = `SELECT * FROM Ratings WHERE eid='${eid}' AND uid='${uid}'`;
+            let result = await pool.query(request);
+            if (result.recordset.length > 0) {
+                request = `DELETE FROM Ratings WHERE eid='${eid}' AND uid='${uid}'`;
+
+                result = await pool.query(request);
+
+                if (result.rowsAffected <= 0)
+                    return res.status(406).send({
+                        error: 'Failed to delete rating with matching eid and uid',
+                    });
+                return res.status(200).send({ deleted: true });
+            }
+            // If there was no user rating, that's fine.
+            return res.status(200).send({ deleted: false });
         })
         .catch((err) => {
             return res.status(500).send({ error: err });
