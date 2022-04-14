@@ -78,11 +78,14 @@ const RSOCard = (props) => {
             sx={{
                 width: 400,
                 height: 200,
-                outline: owned
-                    ? '2px solid #000094'
-                    : joined
-                    ? '2px solid green'
-                    : '0px',
+                outline:
+                    numMembers < 5
+                        ? '2px solid gray'
+                        : owned
+                        ? '2px solid #000094'
+                        : joined
+                        ? '2px solid green'
+                        : '0px',
             }}
         >
             <CardContent sx={{ pb: 0 }}>

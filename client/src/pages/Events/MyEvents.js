@@ -95,8 +95,8 @@ const MyEvents = (props) => {
             setRSOList(res.data.rsos);
             console.log('Successfully retrieved all rsos');
 
-            for(let irso of res.data.rsos)
-                if(irso.uid === userData.uid) owned.push(irso);
+            for (let irso of res.data.rsos)
+                if (irso.uid === userData.uid) owned.push(irso);
             setOwnedRSOsList(owned);
         } else console.error(res.data);
     };
@@ -230,6 +230,7 @@ const MyEvents = (props) => {
             <EventModal
                 open={modalOpen}
                 setModalOpen={setModalOpen}
+                setMode={setModalOp}
                 event={currentEvent ?? { uniName }}
                 mode={modalOp}
                 rsoOptions={ownedRSOsList}

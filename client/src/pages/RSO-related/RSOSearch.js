@@ -123,7 +123,6 @@ const RSOSearch = (props) => {
         }
     };
 
-    console.log(allRSOs);
     return (
         <Box sx={{ mt: 2, ml: 2 }}>
             <form onSubmit={(e) => e.preventDefault()}>

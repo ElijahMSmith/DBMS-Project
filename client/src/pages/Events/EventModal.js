@@ -1,4 +1,3 @@
-import MapPicker from 'react-google-map-picker';
 import {
     Box,
     Button,
@@ -9,10 +8,9 @@ import {
     Stepper,
     TextField,
     Typography,
-    Rating,
+    IconButton,
+    Link,
 } from '@mui/material';
-import IconButton from '@mui/material/IconButton';
-import EditIcon from '@mui/icons-material/Edit';
 import {
     EmailIcon,
     EmailShareButton,
@@ -30,6 +28,10 @@ import { osm } from 'pigeon-maps/providers';
 import { format } from 'fecha';
 import axios from 'axios';
 import { handleError } from '../..';
+import Review from '../../components/Review';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import CommentsPage from './CommentPage';
 
 // Default to UCF area
 const DefaultLocation = [28.602307480049603, -81.20016915689729];
@@ -49,6 +51,7 @@ const visibilityOptions = [
 const CREATE = 1;
 const EDIT = 2;
 const VIEW = 3;
+const COMMENTLIST = 4;
 
 // Page Direction
 const PREV = -1;
@@ -81,14 +84,14 @@ const steps = ['Event Info', 'Event Details'];
 const EventModal = (props) => {
     const {
         open,
-        mode,
-        event,
         setModalOpen,
+        mode,
+        setMode,
+        event,
         rsoOptions,
         setSnackbar,
         refreshEvents,
         userData,
-        reviewData = {},
     } = props;
 
     const {
@@ -125,8 +128,116 @@ const EventModal = (props) => {
     const [page, setPage] = useState(0);
     const [zoom, setZoom] = useState(15);
     const [center, setCenter] = useState(DefaultLocation);
-    const [rating, setRating] = useState(reviewData.rating ?? 1);
-    const [comment, setComment] = useState(reviewData.comment ?? 1);
+    const [editingMode, setEditingMode] = useState(false);
+    const [userReview, setUserReview] = useState(null);
+    const [reviewsList, setReviewsList] = useState([]);
+    const [avgRating, setAvgRating] = useState(0);
+
+    const seeAllComments = async () => {
+        // Refresh comments/ratings list
+        await getEventDetails();
+        setMode(COMMENTLIST);
+    };
+
+    const updateReview = async () => {
+        try {
+            const res = await axios.post(
+                `http://localhost:1433/feedback/comment`,
+                {
+                    cid: userReview.comment.cid,
+                    uid: userData.uid,
+                    eid,
+                    description: userReview.comment.description,
+                }
+            );
+            if (res.status !== 200) {
+                console.error('Error submitting comment:', res.data);
+                setSnackbar(
+                    true,
+                    'error',
+                    'An error occurred submitting your comment'
+                );
+                return;
+            }
+        } catch (err) {
+            console.error('Error submitting comment');
+            handleError(err);
+        }
+
+        try {
+            const res = await axios.post(
+                `http://localhost:1433/feedback/rating`,
+                {
+                    eid,
+                    uid: userData.uid,
+                    numStars: userReview.rating.numStars,
+                }
+            );
+            if (res.status !== 200) {
+                console.error('Error submitting rating: ', res.data);
+                setSnackbar(
+                    true,
+                    'error',
+                    'An error occurred submitting your rating'
+                );
+                return;
+            }
+
+            setSnackbar(true, 'success', 'Successfully created/updated review');
+        } catch (err) {
+            console.error('Error submitting rating');
+            handleError(err);
+        }
+    };
+
+    const getEventDetails = async () => {
+        if (!eid || eid === '') return;
+        // Get all comments and ratings for this event
+        axios
+            .get(`http://localhost:1433/events/details/?eid=${eid}`)
+            .then((res) => {
+                const { comments, ratings, averageRating } = res.data;
+                setAvgRating(averageRating);
+
+                /*
+                comments: 
+                {
+                    “cid”: <string, ID of comment>
+                    “uid”: <string, ID of user who created comment>
+                    “description”: <string, text of comment>
+                    “created”: <datetime, time of comment creation>
+                    “username”: <string, human-readable username for comment author>
+                },
+
+                ratings
+                {
+                    eid: <string>,
+                    uid: <string>
+                    numStars: <integer>
+                } */
+                const allReviews = [];
+                for (let icomm of comments) {
+                    icomm.created = new Date(icomm.created);
+                    const iReview = { comment: icomm };
+
+                    for (let irat of ratings) {
+                        if (icomm.uid === irat.uid) {
+                            iReview.rating = irat;
+                            break;
+                        }
+                    }
+                    allReviews.push(iReview);
+                    if (userData && userData.uid === icomm.uid)
+                        setUserReview(iReview);
+                }
+                setReviewsList(allReviews);
+
+                // Search and match up comments with rating from same user
+                // Add as an object to reviewsList
+                // Set userReview for the pairing matching userData.uid
+            })
+            .catch((err) => handleError(err));
+    };
 
     useEffect(() => {
         setEventName(name);
@@ -142,6 +253,11 @@ const EventModal = (props) => {
         setPage(0);
         setCenter([lat, lng]);
         setZoom(15);
+        setAvgRating(0);
+        setEditingMode(false);
+        setUserReview(null);
+        setReviewsList([]);
+        getEventDetails();
 
         if (!rsoid) setEventRSO(null);
         else {
@@ -275,7 +391,13 @@ const EventModal = (props) => {
     return (
         <Modal open={open} onClose={() => setModalOpen(false)}>
             <Box sx={style}>
-                {mode === VIEW ? (
+                {mode === COMMENTLIST ? (
+                    <CommentsPage
+                        reviewsList={reviewsList}
+                        avgRating={avgRating}
+                        setMode={setMode}
+                    />
+                ) : mode === VIEW ? (
                     <>
                         <Typography
                             variant="h4"
@@ -325,30 +447,74 @@ const EventModal = (props) => {
                                 mouseEvents={false}
                             />
                         </Box>
-                        <Typography>My Review:</Typography>
-                        <Box sx={{ width: '100%' }}>
-                            <TextField
-                                value={comment}
-                                label="Comment"
-                                variant="outlined"
-                                onChange={(e) => setComment(e.target.value)}
-                                inputProps={{ maxLength: 36 }}
-                                sx={{ width: '100%' }}
-                                helperText={`${eventName.length}/36`}
-                                error={eventName.length === 0}
-                            />
-                            <IconButton aria-label="edit">
-                                <EditIcon />
-                            </IconButton>
-                            <Typography component="legend">Rating</Typography>
-                            <Rating
-                                name="simple-controlled"
-                                value={value}
-                                onChange={(event, newValue) => {
-                                    setValue(newValue);
+                        {userData ? (
+                            <Box
+                                sx={{
+                                    width: '100%',
+                                    display: 'inline-flex',
+                                    mt: 1,
+                                    flexDirection: 'row',
+                                    justifyContent: 'center',
                                 }}
-                            />
-                        </Box>
+                            >
+                                <Box
+                                    sx={{
+                                        width: '15%',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'center',
+                                        textAlign: 'center',
+                                    }}
+                                >
+                                    <Typography>My Review</Typography>
+                                    <Typography>
+                                        <Link
+                                            component="button"
+                                            variant="body2"
+                                            onClick={() => seeAllComments()}
+                                        >
+                                            See All
+                                        </Link>
+                                    </Typography>
+                                </Box>
+
+                                <Box
+                                    sx={{
+                                        width: '10%',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                    <IconButton
+                                        aria-label="edit"
+                                        sx={{ width: '50px', height: '50px' }}
+                                        onClick={(e) => {
+                                            if (editingMode) updateReview();
+                                            setEditingMode(!editingMode);
+                                        }}
+                                    >
+                                        {!editingMode ? (
+                                            <EditIcon />
+                                        ) : (
+                                            <SaveIcon />
+                                        )}
+                                    </IconButton>
+                                </Box>
+
+                                <Review
+                                    reviewData={userReview ?? {}}
+                                    setReviewData={setUserReview}
+                                    editing={editingMode}
+                                    width="80%"
+                                />
+                            </Box>
+                        ) : (
+                            <Typography sx={{ textAlign: 'center', mt: 1 }}>
+                                Log in to rate/comment on this event!
+                            </Typography>
+                        )}
+
                         <Box
                             sx={{
                                 mt: 2,

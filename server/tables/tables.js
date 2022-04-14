@@ -65,8 +65,6 @@ function initializeTables(pool) {
     ).catch((err) => console.error('Comments Error: ' + err));
     // Ratings
 
-    
-
     pool.query(
         `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Ratings' and xtype='U') 
         CREATE TABLE Ratings (uid CHAR(36) NOT NULL, eid CHAR(36) NOT NULL, numStars INT NOT NULL, CONSTRAINT PK_Ratings PRIMARY KEY (uid, eid), FOREIGN KEY (uid) REFERENCES Users, FOREIGN KEY (eid) REFERENCES Events)`

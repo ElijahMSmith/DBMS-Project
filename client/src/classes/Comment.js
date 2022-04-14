@@ -1,8 +1,8 @@
 export default class Comment {
-    constructor(cid, desc, date, uid, eid) {
+    constructor(cid, description, created, uid, eid) {
         this.cid = cid;
-        this.desc = desc;
-        this.date = date;
+        this.description = description;
+        this.created = created;
         this.uid = uid;
         this.eid = eid;
     }
