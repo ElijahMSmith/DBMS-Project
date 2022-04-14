@@ -32,7 +32,7 @@ router.post('/', async (req, res) => {
             if (result.recordset[0]['ConflictingEvents'] > 0) {
                 // There's an overlapping event!
                 return res.status(406).send({
-                    error: 'That event takes place within an hour of another event at the same location',
+                    error: 'That event takes place within an hour of another event at the same location (${location})',
                 });
             }
 
@@ -54,6 +54,12 @@ router.post('/', async (req, res) => {
                 WHERE eid='${eid}'`;
             } else {
                 // The event does not exist. We're trying to create an event
+
+                // Check to see if the user is the admin of this RSO
+                query = `SELECT * FROM RSOs WHERE rsoid='${rsoid}' AND uid='${uid}'`;
+                result = await pool.query(query);
+                if(result.recordset.length <= 0)
+                    return res.status(406).send({error: "User is not the admin of this RSO"});
 
                 // Create our event id
                 eid = uuidv4();
