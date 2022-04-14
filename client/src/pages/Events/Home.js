@@ -62,7 +62,9 @@ const Home = (props) => {
         else res = await axios.get(`http://localhost:1433/events/?all=true`);
 
         if (res.status === 200) {
+            const newEventList = [];
             for (let ievent of res.data.events) {
+                let include = true;
                 if (ievent.unid !== null) {
                     for (let iuni of uniList) {
                         if (iuni.unid === ievent.unid) {
@@ -74,13 +76,15 @@ const Home = (props) => {
                     for (let irso of rsoList) {
                         if (irso.rsoid === ievent.rsoid) {
                             ievent.rsoName = irso.name;
+                            if (irso.numMembers < 5) include = false;
                             break;
                         }
                     }
                 }
                 ievent.datetime = new Date(ievent.datetime);
+                if (include) newEventList.push(ievent);
             }
-            setEventList(res.data.events);
+            setEventList(newEventList);
         } else console.error(res.data);
     };
 
@@ -251,6 +255,7 @@ const Home = (props) => {
             <EventModal
                 open={modalOpen}
                 setModalOpen={setModalOpen}
+                setMode={setModalOp}
                 event={currentEvent ?? {}}
                 mode={modalOp}
                 rsoOptions={joinedRSOList}

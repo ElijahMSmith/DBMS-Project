@@ -109,8 +109,8 @@ const RSOmodal = (props) => {
             // Parse member emails into a list
             const emailList = memberEmails.split('\n');
 
-            // Must be at least 4 other members to create
-            if (emailList.length < 4) {
+            // Must be at least 5 other members to create
+            if (emailList.length < 5) {
                 setSnackbar(
                     true,
                     'error',
@@ -330,7 +330,7 @@ const RSOmodal = (props) => {
                         {mode === CREATE ? (
                             <TextField
                                 required
-                                label="Member Emails (One Per Line - 4 minimum required of the same email domain)"
+                                label="Member Emails (One Per Line - 5 minimum required of the same email domain)"
                                 variant="outlined"
                                 value={memberEmails}
                                 onChange={(e) =>

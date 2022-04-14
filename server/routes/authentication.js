@@ -118,12 +118,12 @@ router.post('/update', async (req, res) => {
 // Get a user's account by either their uid or email
 router.get('/find', async (req, res) => {
     // Extract the uid of the user from the query
-    const { uid, email, emailList } = req.query;
+    const { uid, email, emailList, uidList } = req.query;
 
-    if (!uid && !email && !emailList) {
+    if (!uid && !email && !emailList && !uidList) {
         // 500 if nothing is provided
         return res.status(500).send({
-            error: 'No uid, email, or email list provided in the request query.',
+            error: 'No uid, email, or email/uid list provided in the request query.',
         });
     }
 
@@ -138,6 +138,21 @@ router.get('/find', async (req, res) => {
                 // Only return the uid for safety concerns
                 if (result.recordset.length > 0)
                     users.push(result.recordset[0].uid);
+            }
+
+            return res.status(200).send({ users });
+        } else if (uidList) {
+            const users = [];
+            for (let iuid of JSON.parse(uidList)) {
+                let query = `SELECT * FROM Users WHERE uid='${iuid}'`;
+                const result = await pool.query(query);
+
+                // Only return the username for safety concerns
+                if (result.recordset.length > 0)
+                    users.push({
+                        uid: result.recordset[0].uid,
+                        username: result.recordset[0].username,
+                    });
             }
 
             return res.status(200).send({ users });

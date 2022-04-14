@@ -56,13 +56,18 @@ function initializeTables(pool) {
 
     pool.query(
         `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Comments' and xtype='U') 
-                    CREATE TABLE Comments (cid CHAR(36) PRIMARY KEY, eid CHAR(36), description VARCHAR(300), date DATE, FOREIGN KEY (eid) REFERENCES Events)`
+                    CREATE TABLE Comments (cid CHAR(36) PRIMARY KEY, uid CHAR(36), eid CHAR(36), description VARCHAR(300), created DATETIME, FOREIGN KEY (eid) REFERENCES Events, FOREIGN KEY (uid) REFERENCES Users)`
+    ).catch((err) => console.error('Comments Error: ' + err));
+
+    pool.query(
+        `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='CommentsOnEvents' and xtype='U') 
+                    CREATE TABLE CommentsOnEvents (cid CHAR(36) NOT NULL, eid CHAR(36) NOT NULL, CONSTRAINT PK_CoE PRIMARY KEY (cid, eid), FOREIGN KEY (cid) REFERENCES Comments, FOREIGN KEY (eid) REFERENCES Events)`
     ).catch((err) => console.error('Comments Error: ' + err));
     // Ratings
 
     pool.query(
         `IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Ratings' and xtype='U') 
-                    CREATE TABLE Ratings (uid CHAR(36) PRIMARY KEY, eid CHAR(36), numStars INTEGER, date DATE, FOREIGN KEY (uid) REFERENCES Users, FOREIGN KEY (eid) REFERENCES Events)`
+        CREATE TABLE Ratings (uid CHAR(36) NOT NULL, eid CHAR(36) NOT NULL, numStars INT NOT NULL, CONSTRAINT PK_Ratings PRIMARY KEY (uid, eid), FOREIGN KEY (uid) REFERENCES Users, FOREIGN KEY (eid) REFERENCES Events)`
     ).catch((err) => console.error('Ratings Error: ' + err));
 
     // Event Tables

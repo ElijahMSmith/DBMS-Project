@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
 import Home from './pages/Events/Home';
-import Universitydetails from './pages/universitydetails';
 import RSOSearch from './pages/RSO-related/RSOSearch';
 import Universities from './pages/Universities';
 import MyEvents from './pages/Events/MyEvents';
@@ -67,15 +66,6 @@ const ContainerComponent = () => {
                                 userData={userData}
                                 setUserData={setUserData}
                                 setSnackbar={setSnackbar}
-                            />
-                        }
-                    />
-                    <Route
-                        path="university/details"
-                        element={
-                            <Universitydetails
-                                userData={userData}
-                                setUserData={setUserData}
                             />
                         }
                     />
