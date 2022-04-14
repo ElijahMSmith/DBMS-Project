@@ -31,6 +31,8 @@ import { handleError } from '../..';
 import Review from '../../components/Review';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
+import DeleteIcon from '@mui/icons-material/Delete';
+
 import CommentsPage from './CommentPage';
 
 // Default to UCF area
@@ -137,6 +139,44 @@ const EventModal = (props) => {
         // Refresh comments/ratings list
         await getEventDetails();
         setMode(COMMENTLIST);
+    };
+
+    const deleteReview = () => {
+        if (userReview && userReview.comment && userReview.comment.cid) {
+            axios
+                .delete(`http://localhost:1433/feedback/comment`, {
+                    data: { cid: userReview.comment.cid },
+                })
+                .then((res) => {
+                    console.log('Deleted comment successfully');
+                    axios
+                        .delete(`http://localhost:1433/feedback/rating`, {
+                            data: { uid: userData.uid, eid },
+                        })
+                        .then((res) => {
+                            console.log('Deleted rating successfully');
+                            setUserReview(null);
+                            getEventDetails();
+                            setSnackbar(
+                                true,
+                                'success',
+                                'Successfully deleted your review!'
+                            );
+                        })
+                        .catch((err) => {
+                            handleError(err);
+                            setSnackbar(
+                                true,
+                                'error',
+                                "Couldn't delete user rating!"
+                            );
+                        });
+                })
+                .catch((err) => {
+                    handleError(err);
+                    setSnackbar(true, 'error', "Couldn't delete user comment!");
+                });
+        }
     };
 
     const updateReview = async () => {
@@ -500,6 +540,13 @@ const EventModal = (props) => {
                                             <SaveIcon />
                                         )}
                                     </IconButton>
+                                    <IconButton
+                                        aria-label="delete"
+                                        sx={{ width: '50px', height: '50px' }}
+                                        onClick={(e) => deleteReview()}
+                                    >
+                                        <DeleteIcon />
+                                    </IconButton>
                                 </Box>
 
                                 <Review
@@ -510,9 +557,31 @@ const EventModal = (props) => {
                                 />
                             </Box>
                         ) : (
-                            <Typography sx={{ textAlign: 'center', mt: 1 }}>
-                                Log in to rate/comment on this event!
-                            </Typography>
+                            <Stack>
+                                <Typography
+                                    sx={{
+                                        textAlign: 'center',
+                                        mt: 1,
+                                        width: '100%',
+                                    }}
+                                >
+                                    Log in to rate/comment on this event!
+                                </Typography>
+                                <Typography>
+                                    <Link
+                                        component="button"
+                                        variant="body2"
+                                        onClick={() => seeAllComments()}
+                                        sx={{
+                                            textAlign: 'center',
+                                            mt: 1,
+                                            width: '100%',
+                                        }}
+                                    >
+                                        See All
+                                    </Link>
+                                </Typography>
+                            </Stack>
                         )}
 
                         <Box
