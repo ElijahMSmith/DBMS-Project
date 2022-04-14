@@ -64,7 +64,7 @@ const RSOmodal = (props) => {
     const upgradePerms = () => {
         const newUserData = {
             uid: userData.uid,
-            email: userData.uid,
+            email: userData.email,
             username: userData.username,
             unid: university.unid,
             permLevel: 2,
@@ -109,8 +109,8 @@ const RSOmodal = (props) => {
             // Parse member emails into a list
             const emailList = memberEmails.split('\n');
 
-            // Must be at least 5 other members to create
-            if (emailList.length < 5) {
+            // Must be at least 4 other members to create
+            if (emailList.length < 4) {
                 setSnackbar(
                     true,
                     'error',
@@ -120,8 +120,10 @@ const RSOmodal = (props) => {
             }
 
             // Test that all emails are from the same domain
+            console.log(userData);
             const domain = userData.email.split('@')[1];
             for (let em of emailList) {
+                console.log(domain + ' vs ' + em.split('@')[1]);
                 if (domain !== em.split('@')[1]) {
                     setSnackbar(
                         true,
@@ -330,7 +332,7 @@ const RSOmodal = (props) => {
                         {mode === CREATE ? (
                             <TextField
                                 required
-                                label="Member Emails (One Per Line - 5 minimum required of the same email domain)"
+                                label="Member Emails (One Per Line - 4 minimum required of the same email domain)"
                                 variant="outlined"
                                 value={memberEmails}
                                 onChange={(e) =>
